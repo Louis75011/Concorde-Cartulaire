@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth/webauthn';
-
-let lastChallenge = '';
+import { setChallenge } from '@/lib/auth/challengeStore';
 
 export async function POST() {
   const opts = await authOptions();
-  lastChallenge = opts.challenge;
+  setChallenge(opts.challenge);
   return NextResponse.json({ options: opts });
-}
-
-export function getChallenge() {
-  return lastChallenge;
 }
