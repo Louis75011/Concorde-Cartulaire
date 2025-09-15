@@ -1,7 +1,19 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import { Container, Typography, Paper, Stack, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import {
+  Container,
+  Typography,
+  Paper,
+  Stack,
+  TextField,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress
+} from '@mui/material';
 import { Nav } from '@/components/Nav';
 
 type CollabRow = { id:number; nom:string; email:string; role:string; clients:string };
@@ -10,11 +22,15 @@ export default function CollaborateursPage() {
   const [rows, setRows] = useState<CollabRow[]>([]);
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<{ nom:string; email:string; role:string }>({ nom:'', email:'', role:'' });
 
   const load = async () => {
+    setLoading(true);
     const r = await fetch('/api/collaborateurs?q=' + encodeURIComponent(q));
-    setRows(await r.json());
+    const data = await r.json();
+    setRows(data);
+    setLoading(false);
   };
   useEffect(() => { load(); }, []);
 
@@ -27,8 +43,14 @@ export default function CollaborateursPage() {
   ], []);
 
   const onCreate = async () => {
-    await fetch('/api/collaborateurs', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(form) });
-    setOpen(false); setForm({ nom:'', email:'', role:'' }); await load();
+    await fetch('/api/collaborateurs', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(form)
+    });
+    setOpen(false);
+    setForm({ nom:'', email:'', role:'' });
+    await load();
   };
 
   return (
@@ -37,30 +59,77 @@ export default function CollaborateursPage() {
       <Container sx={{ py:4 }}>
         <Typography variant="h4" gutterBottom>Collaborateurs</Typography>
 
+        {/* Recherche + boutons */}
         <Paper sx={{ p:2, mb:2 }}>
           <Stack direction="row" spacing={2}>
-            <TextField size="small" label="Recherche (nom/email/role/client)" variant="outlined" InputLabelProps={{ shrink: true }} value={q} onChange={e=>setQ(e.target.value)} />
+            <TextField
+              size="small"
+              label="Recherche (nom/email/role/client)"
+              variant="outlined"
+              InputLabelProps={{ shrink: true }}
+              value={q}
+              onChange={e=>setQ(e.target.value)}
+            />
             <Button variant="outlined" onClick={load}>Filtrer</Button>
             <Button variant="contained" onClick={()=>setOpen(true)}>Nouveau collaborateur</Button>
           </Stack>
         </Paper>
 
-        <div style={{ height: 560, width:'100%' }}>
-          <DataGrid rows={rows} columns={cols} slots={{ toolbar: GridToolbar }} disableRowSelectionOnClick />
-        </div>
+        {/* Loader ou tableau */}
+        {loading ? (
+          <Stack alignItems="center" sx={{ mt: 4 }}>
+            <CircularProgress />
+            <Typography>Chargement...</Typography>
+          </Stack>
+        ) : (
+          <div style={{ height: 560, width:'100%' }}>
+            <DataGrid
+              rows={rows}
+              columns={cols}
+              getRowId={(row) => row.id}
+              slots={{ toolbar: GridToolbar }}
+              disableRowSelectionOnClick
+            />
+          </div>
+        )}
 
+        {/* Dialog création */}
         <Dialog open={open} onClose={()=>setOpen(false)} fullWidth maxWidth="sm">
           <DialogTitle>Nouveau collaborateur</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt:1 }}>
-              <TextField label="Nom" variant="outlined" InputLabelProps={{ shrink: true }} value={form.nom} onChange={e=>setForm(f=>({ ...f, nom:e.target.value }))}/>
-              <TextField label="Email" variant="outlined" InputLabelProps={{ shrink: true }} value={form.email} onChange={e=>setForm(f=>({ ...f, email:e.target.value }))}/>
-              <TextField label="Rôle" variant="outlined" InputLabelProps={{ shrink: true }} value={form.role} onChange={e=>setForm(f=>({ ...f, role:e.target.value }))}/>
+              <TextField
+                label="Nom"
+                variant="outlined"
+                InputLabelProps={{ shrink: true }}
+                value={form.nom}
+                onChange={e=>setForm(f=>({ ...f, nom:e.target.value }))}
+              />
+              <TextField
+                label="Email"
+                variant="outlined"
+                InputLabelProps={{ shrink: true }}
+                value={form.email}
+                onChange={e=>setForm(f=>({ ...f, email:e.target.value }))}
+              />
+              <TextField
+                label="Rôle"
+                variant="outlined"
+                InputLabelProps={{ shrink: true }}
+                value={form.role}
+                onChange={e=>setForm(f=>({ ...f, role:e.target.value }))}
+              />
             </Stack>
           </DialogContent>
           <DialogActions>
             <Button onClick={()=>setOpen(false)}>Annuler</Button>
-            <Button variant="contained" onClick={onCreate} disabled={!form.nom || !form.email}>Créer</Button>
+            <Button
+              variant="contained"
+              onClick={onCreate}
+              disabled={!form.nom || !form.email}
+            >
+              Créer
+            </Button>
           </DialogActions>
         </Dialog>
       </Container>

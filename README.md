@@ -27,5 +27,5 @@ pnpm dev
 
 ## TODO
 - Compléter la persistance WebAuthn (stockage credentials) & TOTP.
-- Implémenter intégralement les webhooks et rapprochement paiements.
+- Implémenter intégralement les webhooks et rapprochement payments.
 - Écrans CRUD complets + DataGrid.

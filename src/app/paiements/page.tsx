@@ -12,7 +12,7 @@ async function getData() {
   return { rows, totals };
 }
 
-export default async function PaiementsPage() {
+export default async function PaymentsPage() {
   const { rows, totals } = await getData();
   return (
     <>
@@ -21,12 +21,25 @@ export default async function PaiementsPage() {
         <Typography variant="h4" gutterBottom>Paiements</Typography>
         <Grid container spacing={2}>
           {Object.entries(totals).map(([k,v]) => (
-            <Grid key={k} item xs={12} md={2}><Paper sx={{ p:2 }}><Typography variant="h6">{k}</Typography><Typography>{v}</Typography></Paper></Grid>
+            <Grid key={k} item xs={12} md={2}>
+              <Paper sx={{ p:2 }}>
+                <Typography variant="h6">
+                  {k === 'created' && 'Créés'}
+                  {k === 'submitted' && 'Soumis'}
+                  {k === 'paid' && 'Payés'}
+                  {k === 'failed' && 'Échoués'}
+                  {k === 'cancelled' && 'Annulés'}
+                </Typography>
+                <Typography>{v}</Typography>
+              </Paper>
+            </Grid>
           ))}
         </Grid>
         <Paper sx={{ p:2, mt:2 }}>
           <Typography variant="h6">Derniers événements</Typography>
-          <pre style={{ overflow:'auto' }}>{JSON.stringify(rows.slice(0,20), null, 2)}</pre>
+          <pre style={{ overflow:'auto' }}>
+            {JSON.stringify(rows.slice(0,20), null, 2)}
+          </pre>
         </Paper>
       </Container>
     </>

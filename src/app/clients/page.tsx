@@ -1,6 +1,11 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridToolbarContainer,
+  GridToolbarExport,
+  GridToolbarQuickFilter,
+} from "@mui/x-data-grid";
 import {
   Container,
   Typography,
@@ -12,6 +17,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  CircularProgress,
 } from "@mui/material";
 import { Nav } from "@/components/Nav";
 
@@ -27,17 +33,26 @@ interface Client {
 
 export default function ClientsPage() {
   const [rows, setRows] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Client>>({ nom: "", email: "" });
 
   const load = async () => {
+    setLoading(true);
     const r = await fetch("/api/clients?q=" + encodeURIComponent(q));
-    setRows(await r.json());
+    const data = await r.json();
+    setRows(data);
+    setLoading(false);
   };
+
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    console.log("Clients chargés :", rows);
+  }, [rows]);
 
   const cols = useMemo(
     () => [
@@ -62,6 +77,15 @@ export default function ClientsPage() {
     await load();
   };
 
+  function CustomToolbar() {
+    return (
+      <GridToolbarContainer>
+        <GridToolbarQuickFilter />
+        <GridToolbarExport />
+      </GridToolbarContainer>
+    );
+  }
+
   return (
     <>
       <Nav />
@@ -69,14 +93,16 @@ export default function ClientsPage() {
         <Typography variant="h4" gutterBottom>
           Clients
         </Typography>
+
+        {/* Filtre + bouton création */}
         <Paper sx={{ p: 2, mb: 2 }}>
           <Stack direction="row" spacing={2}>
             <TextField
               label="Nom"
               variant="outlined"
-              value={form.nom || ""}
-              onChange={(e) => setForm({ ...form, nom: e.target.value })}
-              InputLabelProps={{ shrink: true }}
+              InputLabelProps={{ shrink: true }} // ✅ évite bug d’affichage
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
             />
             <Button variant="outlined" onClick={load}>
               Filtrer
@@ -86,15 +112,26 @@ export default function ClientsPage() {
             </Button>
           </Stack>
         </Paper>
-        <div style={{ height: 520, width: "100%" }}>
-          <DataGrid
-            rows={rows}
-            columns={cols}
-            slots={{ toolbar: GridToolbar }}
-            disableRowSelectionOnClick
-          />
-        </div>
 
+        {/* Loader ou tableau */}
+        {loading ? (
+          <Stack alignItems="center" sx={{ mt: 4 }}>
+            <CircularProgress />
+            <Typography>Chargement...</Typography>
+          </Stack>
+        ) : (
+          <div style={{ height: 520, width: "100%" }}>
+            <DataGrid
+              rows={rows}
+              columns={cols}
+              getRowId={(row) => row.id}
+              slots={{ toolbar: CustomToolbar }}
+              disableRowSelectionOnClick
+            />
+          </div>
+        )}
+
+        {/* Dialog création */}
         <Dialog open={open} onClose={() => setOpen(false)}>
           <DialogTitle>Nouveau client</DialogTitle>
           <DialogContent>

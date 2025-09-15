@@ -42,11 +42,11 @@ export default function Page() {
             </Paper>
           </Grid>
 
-          {/* Bloc Paiements */}
+          {/* Bloc payments */}
           <Grid item xs={12} md={6} lg={4}>
             <Paper sx={{ p: 2 }}>
               <Typography variant="h6" gutterBottom>
-                Paiements
+                payments
               </Typography>
               <Stack spacing={1}>
                 <Typography variant="body2">Mandats : 6</Typography>
@@ -114,7 +114,6 @@ export default function Page() {
   );
 }
 
-
 // DONNEES DYNAMIQUES
 // 'use client';
 // import { useEffect, useState } from 'react';
@@ -127,7 +126,7 @@ export default function Page() {
 //   useEffect(() => {
 //     const load = async () => {
 //       try {
-//         const [clients, collaborateurs, contrats, factures, prestataires, paiements] = await Promise.all([
+//         const [clients, collaborateurs, contrats, factures, prestataires, payments] = await Promise.all([
 //           fetch('/api/clients').then(r => r.json()),
 //           fetch('/api/collaborateurs').then(r => r.json()),
 //           fetch('/api/contrats').then(r => r.json()),
@@ -167,11 +166,11 @@ export default function Page() {
 //             total: prestataires.length,
 //             types: [...new Set(prestataires.map((p:any)=>p.type))].join(', ')
 //           },
-//           paiements: {
-//             mandats: paiements.filter((p:any)=>p.type==='mandat').length,
-//             prelevements: paiements.filter((p:any)=>p.type==='prelevement').length,
-//             echecs: paiements.filter((p:any)=>p.statut==='failed').length,
-//             webhooks: paiements.filter((p:any)=>p.webhook_actif===true).length,
+//           payments: {
+//             mandats: payments.filter((p:any)=>p.type==='mandat').length,
+//             prelevements: payments.filter((p:any)=>p.type==='prelevement').length,
+//             echecs: payments.filter((p:any)=>p.statut==='failed').length,
+//             webhooks: payments.filter((p:any)=>p.webhook_actif===true).length,
 //           }
 //         });
 //       } catch (err) {
@@ -219,12 +218,12 @@ export default function Page() {
 
 //             <Grid item xs={12} md={4}>
 //               <Paper sx={{ p: 2 }}>
-//                 <Typography variant="h6">Paiements</Typography>
+//                 <Typography variant="h6">payments</Typography>
 //                 <Stack>
-//                   <Typography>Mandats : {stats.paiements.mandats}</Typography>
-//                   <Typography>Prélèvements : {stats.paiements.prelevements}</Typography>
-//                   <Typography>Échecs : {stats.paiements.echecs}</Typography>
-//                   <Typography>Webhooks actifs : {stats.paiements.webhooks}</Typography>
+//                   <Typography>Mandats : {stats.payments.mandats}</Typography>
+//                   <Typography>Prélèvements : {stats.payments.prelevements}</Typography>
+//                   <Typography>Échecs : {stats.payments.echecs}</Typography>
+//                   <Typography>Webhooks actifs : {stats.payments.webhooks}</Typography>
 //                 </Stack>
 //               </Paper>
 //             </Grid>

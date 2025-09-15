@@ -1,7 +1,19 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import { Container, Typography, Paper, Stack, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import {
+  Container,
+  Typography,
+  Paper,
+  Stack,
+  TextField,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress
+} from '@mui/material';
 import { Nav } from '@/components/Nav';
 
 type PrestataireRow = { id:number; type:string; statut:string; contact_email:string|null; secteur:string|null };
@@ -10,12 +22,19 @@ export default function PrestatairesPage() {
   const [rows, setRows] = useState<PrestataireRow[]>([]);
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<Partial<PrestataireRow>>({ type:'', statut:'actif', contact_email:'', secteur:'' });
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState<Partial<PrestataireRow>>({
+    type:'', statut:'actif', contact_email:'', secteur:''
+  });
 
   const load = async () => {
+    setLoading(true);
     const r = await fetch('/api/prestataires?q=' + encodeURIComponent(q));
-    setRows(await r.json());
+    const data = await r.json();
+    setRows(data);
+    setLoading(false);
   };
+
   useEffect(() => { load(); }, []);
 
   const cols = useMemo(() => [
@@ -27,8 +46,14 @@ export default function PrestatairesPage() {
   ], []);
 
   const onCreate = async () => {
-    await fetch('/api/prestataires', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(form) });
-    setOpen(false); setForm({ type:'', statut:'actif', contact_email:'', secteur:'' }); await load();
+    await fetch('/api/prestataires', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(form)
+    });
+    setOpen(false);
+    setForm({ type:'', statut:'actif', contact_email:'', secteur:'' });
+    await load();
   };
 
   return (
@@ -37,26 +62,53 @@ export default function PrestatairesPage() {
       <Container sx={{ py:4 }}>
         <Typography variant="h4" gutterBottom>Prestataires</Typography>
 
+        {/* Zone de recherche */}
         <Paper sx={{ p:2, mb:2 }}>
           <Stack direction="row" spacing={2}>
-            <TextField size="small" label="Recherche (type/statut/email/secteur)" variant="outlined" InputLabelProps={{ shrink: true }} value={q} onChange={e=>setQ(e.target.value)} />
+            <TextField
+              size="small"
+              label="Recherche (type/statut/email/secteur)"
+              variant="outlined"
+              InputLabelProps={{ shrink: true }}
+              value={q}
+              onChange={e=>setQ(e.target.value)}
+            />
             <Button variant="outlined" onClick={load}>Filtrer</Button>
             <Button variant="contained" onClick={()=>setOpen(true)}>Nouveau prestataire</Button>
           </Stack>
         </Paper>
 
-        <div style={{ height: 540, width:'100%' }}>
-          <DataGrid rows={rows} columns={cols} slots={{ toolbar: GridToolbar }} disableRowSelectionOnClick />
-        </div>
+        {/* Loader ou tableau */}
+        {loading ? (
+          <Stack alignItems="center" sx={{ mt:4 }}>
+            <CircularProgress />
+            <Typography>Chargement...</Typography>
+          </Stack>
+        ) : (
+          <div style={{ height:540, width:'100%' }}>
+            <DataGrid
+              rows={rows}
+              columns={cols}
+              getRowId={(row)=>row.id}
+              slots={{ toolbar: GridToolbar }}
+              disableRowSelectionOnClick
+            />
+          </div>
+        )}
 
+        {/* Dialog création */}
         <Dialog open={open} onClose={()=>setOpen(false)} fullWidth maxWidth="sm">
           <DialogTitle>Nouveau prestataire</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt:1 }}>
-              <TextField label="Type" variant="outlined" InputLabelProps={{ shrink: true }} value={form.type||''} onChange={e=>setForm(f=>({ ...f, type:e.target.value }))}/>
-              <TextField label="Statut" variant="outlined" InputLabelProps={{ shrink: true }} value={form.statut||''} onChange={e=>setForm(f=>({ ...f, statut:e.target.value }))}/>
-              <TextField label="Email" variant="outlined" InputLabelProps={{ shrink: true }} value={form.contact_email||''} onChange={e=>setForm(f=>({ ...f, contact_email:e.target.value }))}/>
-              <TextField label="Secteur" variant="outlined" InputLabelProps={{ shrink: true }} value={form.secteur||''} onChange={e=>setForm(f=>({ ...f, secteur:e.target.value }))}/>
+              <TextField label="Type" variant="outlined" InputLabelProps={{ shrink: true }}
+                value={form.type||''} onChange={e=>setForm(f=>({...f, type:e.target.value}))}/>
+              <TextField label="Statut" variant="outlined" InputLabelProps={{ shrink: true }}
+                value={form.statut||''} onChange={e=>setForm(f=>({...f, statut:e.target.value}))}/>
+              <TextField label="Email" variant="outlined" InputLabelProps={{ shrink: true }}
+                value={form.contact_email||''} onChange={e=>setForm(f=>({...f, contact_email:e.target.value}))}/>
+              <TextField label="Secteur" variant="outlined" InputLabelProps={{ shrink: true }}
+                value={form.secteur||''} onChange={e=>setForm(f=>({...f, secteur:e.target.value}))}/>
             </Stack>
           </DialogContent>
           <DialogActions>

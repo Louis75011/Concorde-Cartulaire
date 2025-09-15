@@ -87,7 +87,7 @@
 
 // ---
 
-// ### Paiements (GoCardless)
+// ### payments (GoCardless)
 
 // * `POST /api/payments/gocardless/mandate`
 // * `POST /api/payments/gocardless/ping`

@@ -28,7 +28,7 @@ const links = [
   { href: "/factures", label: "Factures", icon: <ReceiptIcon /> },
   { href: "/prestataires", label: "Prestataires", icon: <WorkIcon /> },
   { href: "/collaborateurs", label: "Collaborateurs", icon: <GroupIcon /> },
-  { href: "/paiements", label: "Paiements", icon: <PaymentIcon /> },
+  { href: "/payments", label: "payments", icon: <PaymentIcon /> },
   { href: "/signatures", label: "Signatures", icon: <EditNoteIcon /> },
   { href: "/settings", label: "Paramètres", icon: <SettingsIcon /> },
 ];
@@ -38,7 +38,7 @@ export function Nav() {
 
   return (
     <>
-      {/* Desktop (>= md) */}
+      {/* Desktop (>= lg) */}
       <AppBar position="static" sx={{ display: { xs: "none", lg: "block" } }}>
         <Toolbar>
           <Box
@@ -53,7 +53,9 @@ export function Nav() {
               variant="h6"
               sx={{ fontSize: "1.1rem", fontWeight: 600, lineHeight: 1 }}
             >
-              Concorde<br />Cartulaire
+              Concorde
+              <br />
+              Cartulaire
             </Typography>
             <Typography
               variant="subtitle2"
@@ -78,7 +80,7 @@ export function Nav() {
         </Toolbar>
       </AppBar>
 
-      {/* Mobile (< md) */}
+      {/* Mobile (< lg) */}
       <Paper
         sx={{
           position: "fixed",
@@ -87,6 +89,7 @@ export function Nav() {
           right: 0,
           display: { xs: "block", lg: "none" },
           zIndex: 1200,
+          height: "auto", // ✅ prend la hauteur de son contenu
         }}
         elevation={3}
       >
@@ -95,18 +98,18 @@ export function Nav() {
           value={value}
           onChange={(_, newValue) => setValue(newValue)}
           sx={{
-            flexWrap: "wrap", // passe en 2 lignes si besoin
-            height: "auto",
+            flexWrap: "wrap",
+            height: "auto", // ✅ même chose ici
           }}
         >
-          {links.map((link, idx) => (
+          {links.map((link) => (
             <BottomNavigationAction
               key={link.href}
               label={link.label}
               icon={link.icon}
               component={Link}
               href={link.href}
-              sx={{ flex: "1 0 33%", p: 0.5 }} // 3 icônes par ligne
+              sx={{ flex: "1 0 33%", py: 0.5, pt: 0.5, pb: 3 }}
             />
           ))}
         </BottomNavigation>
