@@ -20,6 +20,7 @@ import GroupIcon from "@mui/icons-material/Group";
 import PaymentIcon from "@mui/icons-material/Payment";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import SettingsIcon from "@mui/icons-material/Settings";
+import Image from "next/image";
 
 const links = [
   { href: "/", label: "Tableau", icon: <DashboardIcon /> },
@@ -44,10 +45,12 @@ export function Nav() {
           <Box
             sx={{ display: "flex", alignItems: "center", gap: 1, flexGrow: 1 }}
           >
-            <img
+            <Image
               src="/assets/cc-draft-logo.jpg"
-              alt="Logo Concorde Cartulaire"
-              style={{ width: 42, height: 42, borderRadius: 4 }}
+              alt="Logo"
+              width={42}
+              height={42}
+              border-radius={4}
             />
             <Typography
               variant="h6"

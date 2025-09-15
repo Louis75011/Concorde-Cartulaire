@@ -1,5 +1,5 @@
-'use client';
-import { useEffect, useState } from 'react';
+"use client";
+import { useEffect, useState } from "react";
 import {
   Container,
   Typography,
@@ -7,8 +7,8 @@ import {
   Paper,
   CircularProgress,
   Stack,
-} from '@mui/material';
-import { Nav } from '@/components/Nav';
+} from "@mui/material";
+import { Nav } from "@/components/Nav";
 
 type DashboardData = {
   clients: number;
@@ -26,11 +26,11 @@ export default function DashboardPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch('/api/dashboard');
+      const r = await fetch("/api/dashboard");
       const json = await r.json();
       setData(json);
     } catch (err) {
-      console.error('Erreur chargement dashboard:', err);
+      console.error("Erreur chargement dashboard:", err);
     } finally {
       setLoading(false);
     }
@@ -59,7 +59,9 @@ export default function DashboardPage() {
                 </Stack>
               ) : (
                 <>
-                  <Typography>Brouillons : — {/* à détailler plus tard */}</Typography>
+                  <Typography>
+                    Brouillons : — {/* à détailler plus tard */}
+                  </Typography>
                   <Typography>Actifs : {data?.contrats}</Typography>
                   <Typography>Susp. : —</Typography>
                   <Typography>Clos : —</Typography>
@@ -136,7 +138,9 @@ export default function DashboardPage() {
               ) : (
                 <>
                   <Typography>Actifs : {data?.collaborateurs}</Typography>
-                  <Typography>Rôles : chef de projet, support, commercial</Typography>
+                  <Typography>
+                    Rôles : chef de projet, support, commercial
+                  </Typography>
                 </>
               )}
             </Paper>

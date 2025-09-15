@@ -1,11 +1,11 @@
-'use client';
-import { useEffect, useMemo, useState } from 'react';
+"use client";
+import { useEffect, useMemo, useState } from "react";
 import {
   DataGrid,
   GridToolbarContainer,
   GridToolbarQuickFilter,
   GridToolbarExport,
-} from '@mui/x-data-grid';
+} from "@mui/x-data-grid";
 import {
   Container,
   Typography,
@@ -22,8 +22,8 @@ import {
   FormControl,
   InputLabel,
   CircularProgress,
-} from '@mui/material';
-import { Nav } from '@/components/Nav';
+} from "@mui/material";
+import { Nav } from "@/components/Nav";
 
 type ContratRow = {
   id: number;
@@ -37,25 +37,25 @@ type ClientOpt = { id: number; nom: string };
 export default function ContratsPage() {
   const [rows, setRows] = useState<ContratRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [clients, setClients] = useState<ClientOpt[]>([]);
-  const [form, setForm] = useState<{ client_id: number | ''; titre: string }>({
-    client_id: '',
-    titre: '',
+  const [form, setForm] = useState<{ client_id: number | ""; titre: string }>({
+    client_id: "",
+    titre: "",
   });
 
   // --- Chargement principal ---
   const load = async () => {
     setLoading(true);
-    const r = await fetch('/api/contrats?q=' + encodeURIComponent(q));
+    const r = await fetch("/api/contrats?q=" + encodeURIComponent(q));
     const data = await r.json();
     setRows(data);
     setLoading(false);
   };
 
   const loadOpts = async () => {
-    const r = await fetch('/api/contrats/options');
+    const r = await fetch("/api/contrats/options");
     setClients(await r.json());
   };
 
@@ -67,29 +67,31 @@ export default function ContratsPage() {
   // --- Colonnes du tableau ---
   const cols = useMemo(
     () => [
-      { field: 'id', headerName: '#', width: 80 },
-      { field: 'client', headerName: 'Client', flex: 1 },
-      { field: 'titre', headerName: 'Titre', flex: 1.2 },
+      { field: "id", headerName: "#", width: 80 },
+      { field: "client", headerName: "Client", flex: 1 },
+      { field: "titre", headerName: "Titre", flex: 1.2 },
       {
-        field: 'cree_le',
-        headerName: 'Créé le',
+        field: "cree_le",
+        headerName: "Créé le",
         width: 150,
         valueFormatter: (params: any) =>
-    params.value ? new Date(params.value).toLocaleDateString('fr-FR') : '',
-},
+          params.value
+            ? new Date(params.value).toLocaleDateString("fr-FR")
+            : "",
+      },
     ],
     []
   );
 
   // --- Création ---
   const onCreate = async () => {
-    await fetch('/api/contrats', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("/api/contrats", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
     setOpen(false);
-    setForm({ client_id: '', titre: '' });
+    setForm({ client_id: "", titre: "" });
     await load();
   };
 
@@ -138,7 +140,7 @@ export default function ContratsPage() {
             <Typography>Chargement...</Typography>
           </Stack>
         ) : (
-          <div style={{ height: 540, width: '100%' }}>
+          <div style={{ height: 540, width: "100%" }}>
             <DataGrid
               rows={rows}
               columns={cols}
@@ -150,7 +152,12 @@ export default function ContratsPage() {
         )}
 
         {/* Dialog création */}
-        <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <Dialog
+          open={open}
+          onClose={() => setOpen(false)}
+          fullWidth
+          maxWidth="sm"
+        >
           <DialogTitle>Nouveau contrat</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -159,9 +166,12 @@ export default function ContratsPage() {
                 <Select
                   labelId="clbl"
                   label="Client"
-                  value={form.client_id === '' ? '' : String(form.client_id)}
+                  value={form.client_id === "" ? "" : String(form.client_id)}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, client_id: Number(e.target.value) }))
+                    setForm((f) => ({
+                      ...f,
+                      client_id: Number(e.target.value),
+                    }))
                   }
                 >
                   {clients.map((c) => (
@@ -187,7 +197,7 @@ export default function ContratsPage() {
             <Button
               variant="contained"
               onClick={onCreate}
-              disabled={form.client_id === '' || !form.titre.trim()}
+              disabled={form.client_id === "" || !form.titre.trim()}
             >
               Créer
             </Button>

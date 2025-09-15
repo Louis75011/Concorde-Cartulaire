@@ -48,7 +48,7 @@ export default function ClientsPage() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   // useEffect(() => {
   //   console.log("Clients chargés :", rows);
