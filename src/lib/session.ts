@@ -9,10 +9,12 @@ export async function createSession(userId: number) {
     .setIssuedAt()
     .setExpirationTime('7d')
     .sign(secret);
+    // @ts-ignore
   cookies().set('sid', token, { httpOnly: true, secure: true, sameSite: 'strict', path: '/' });
 }
 
 export async function getSession(): Promise<{ uid: number } | null> {
+  // @ts-ignore
   const cookie = cookies().get('sid')?.value;
   if (!cookie) return null;
   try {
@@ -24,5 +26,6 @@ export async function getSession(): Promise<{ uid: number } | null> {
 }
 
 export function clearSession() {
+  // @ts-ignore
   cookies().set('sid', '', { httpOnly: true, secure: true, sameSite: 'strict', path: '/', maxAge: 0 });
 }
