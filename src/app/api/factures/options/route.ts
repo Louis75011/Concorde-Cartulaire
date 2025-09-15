@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/server/db/client';
 import { contrats, clients } from '@/server/db/schema';
-import { eq, desc, } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 export async function GET() {
   const rows = await db

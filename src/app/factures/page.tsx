@@ -56,7 +56,7 @@ export default function FacturesPage() {
 
         <Paper sx={{ p:2, mb:2 }}>
           <Stack direction="row" spacing={2}>
-            <TextField size="small" label="Recherche (client/contrat/statut)" variant="outlined" value={q} onChange={e=>setQ(e.target.value)} />
+            <TextField size="small" label="Recherche (client/contrat/statut)" variant="outlined" InputLabelProps={{ shrink: true }} value={q} onChange={e=>setQ(e.target.value)} />
             <Button variant="outlined" onClick={load}>Filtrer</Button>
             <Button variant="contained" onClick={()=>setOpen(true)}>Nouvelle facture</Button>
           </Stack>
@@ -78,9 +78,9 @@ export default function FacturesPage() {
                   {contrats.map(c => <MenuItem key={c.id} value={c.id}>{c.client} — {c.titre}</MenuItem>)}
                 </Select>
               </FormControl>
-              <TextField label="Montant HT (€)" type="number" value={form.montant_ht} onChange={e=>setForm(f=>({ ...f, montant_ht:e.target.value }))}/>
-              <TextField label="TVA (%)" type="number" value={form.tva} onChange={e=>setForm(f=>({ ...f, tva:e.target.value }))}/>
-              <TextField label="Échéance (YYYY-MM-DD)" value={form.date_echeance||''} onChange={e=>setForm(f=>({ ...f, date_echeance:e.target.value }))}/>
+              <TextField label="Montant HT (€)" type="number" InputLabelProps={{ shrink: true }} value={form.montant_ht} onChange={e=>setForm(f=>({ ...f, montant_ht:e.target.value }))}/>
+              <TextField label="TVA (%)" type="number" InputLabelProps={{ shrink: true }} value={form.tva} onChange={e=>setForm(f=>({ ...f, tva:e.target.value }))}/>
+              <TextField label="Échéance (YYYY-MM-DD)" InputLabelProps={{ shrink: true }} value={form.date_echeance||''} onChange={e=>setForm(f=>({ ...f, date_echeance:e.target.value }))}/>
             </Stack>
           </DialogContent>
           <DialogActions>

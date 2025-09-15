@@ -39,7 +39,7 @@ export default function PrestatairesPage() {
 
         <Paper sx={{ p:2, mb:2 }}>
           <Stack direction="row" spacing={2}>
-            <TextField size="small" label="Recherche (type/statut/email/secteur)" variant="outlined" value={q} onChange={e=>setQ(e.target.value)} />
+            <TextField size="small" label="Recherche (type/statut/email/secteur)" variant="outlined" InputLabelProps={{ shrink: true }} value={q} onChange={e=>setQ(e.target.value)} />
             <Button variant="outlined" onClick={load}>Filtrer</Button>
             <Button variant="contained" onClick={()=>setOpen(true)}>Nouveau prestataire</Button>
           </Stack>
@@ -53,10 +53,10 @@ export default function PrestatairesPage() {
           <DialogTitle>Nouveau prestataire</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt:1 }}>
-              <TextField label="Type" variant="outlined" value={form.type||''} onChange={e=>setForm(f=>({ ...f, type:e.target.value }))}/>
-              <TextField label="Statut" variant="outlined" value={form.statut||''} onChange={e=>setForm(f=>({ ...f, statut:e.target.value }))}/>
-              <TextField label="Email" variant="outlined" value={form.contact_email||''} onChange={e=>setForm(f=>({ ...f, contact_email:e.target.value }))}/>
-              <TextField label="Secteur" variant="outlined" value={form.secteur||''} onChange={e=>setForm(f=>({ ...f, secteur:e.target.value }))}/>
+              <TextField label="Type" variant="outlined" InputLabelProps={{ shrink: true }} value={form.type||''} onChange={e=>setForm(f=>({ ...f, type:e.target.value }))}/>
+              <TextField label="Statut" variant="outlined" InputLabelProps={{ shrink: true }} value={form.statut||''} onChange={e=>setForm(f=>({ ...f, statut:e.target.value }))}/>
+              <TextField label="Email" variant="outlined" InputLabelProps={{ shrink: true }} value={form.contact_email||''} onChange={e=>setForm(f=>({ ...f, contact_email:e.target.value }))}/>
+              <TextField label="Secteur" variant="outlined" InputLabelProps={{ shrink: true }} value={form.secteur||''} onChange={e=>setForm(f=>({ ...f, secteur:e.target.value }))}/>
             </Stack>
           </DialogContent>
           <DialogActions>

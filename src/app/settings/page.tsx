@@ -25,7 +25,7 @@ export default function SettingsPage() {
             <Paper sx={{ p: 2 }}>
               <Typography variant="h6">GoCardless (sandbox)</Typography>
               <Stack spacing={2}>
-                <TextField label="Access Token (.env)" variant="outlined" value={gocardlessKey} onChange={e=>setGC(e.target.value)} placeholder="via .env - lecture non incluse ici" />
+                <TextField label="Access Token (.env)" variant="outlined" InputLabelProps={{ shrink: true }} value={gocardlessKey} onChange={e=>setGC(e.target.value)} placeholder="via .env - lecture non incluse ici" />
                 <Button variant="contained" onClick={testGC}>Tester connexion</Button>
               </Stack>
             </Paper>
@@ -34,7 +34,7 @@ export default function SettingsPage() {
             <Paper sx={{ p: 2 }}>
               <Typography variant="h6">DocuSeal</Typography>
               <Stack spacing={2}>
-                <TextField label="API Key (.env)" variant="outlined" value={docusealKey} onChange={e=>setDS(e.target.value)} placeholder="via .env - lecture non incluse ici" />
+                <TextField label="API Key (.env)" variant="outlined" InputLabelProps={{ shrink: true }} value={docusealKey} onChange={e=>setDS(e.target.value)} placeholder="via .env - lecture non incluse ici" />
                 <Button variant="contained" onClick={testDS}>Tester connexion</Button>
               </Stack>
             </Paper>

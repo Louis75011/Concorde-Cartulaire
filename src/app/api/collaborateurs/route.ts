@@ -4,17 +4,15 @@ import { collaborateurs, affectations, clients } from '@/server/db/schema';
 import { eq, ilike, or, desc } from 'drizzle-orm';
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const q = searchParams.get('q')?.trim() || '';
-
-  // Base list
-  const where = q
-    ? or(ilike(collaborateurs.nom, `%${q}%`), ilike(collaborateurs.email, `%${q}%`), ilike(collaborateurs.role, `%${q}%`))
-    : undefined;
+  const q = new URL(req.url).searchParams.get('q')?.trim() || '';
+  const where = q ? or(
+    ilike(collaborateurs.nom, `%${q}%`),
+    ilike(collaborateurs.email, `%${q}%`),
+    ilike(collaborateurs.role, `%${q}%`)
+  ) : undefined;
 
   const base = await db.select().from(collaborateurs).where(where as any).orderBy(desc(collaborateurs.id)).limit(300);
 
-  // Enrichir avec la liste des clients (simple N+1)
   const rows = [];
   for (const c of base) {
     const affs = await db
@@ -22,19 +20,15 @@ export async function GET(req: Request) {
       .from(affectations)
       .innerJoin(clients, eq(affectations.client_id, clients.id))
       .where(eq(affectations.collaborateur_id, c.id));
-
     rows.push({
       id: c.id,
       nom: c.nom,
       email: c.email,
       role: c.role,
-      clients: affs.map(a => a.client).join(', '),
+      clients: affs.map(a=>a.client).join(', '),
     });
   }
-  // Filtrer aussi sur nom de client si q donné
-  const finalRows = q ? rows.filter(r => r.clients.toLowerCase().includes(q.toLowerCase()) || true) : rows;
-
-  return NextResponse.json(finalRows);
+  return NextResponse.json(rows);
 }
 
 export async function POST(req: Request) {
@@ -46,4 +40,11 @@ export async function POST(req: Request) {
 
   const [row] = await db.insert(collaborateurs).values({ nom, email, role }).returning({ id: collaborateurs.id });
   return NextResponse.json({ ok:true, id: row.id });
+}
+
+export async function DELETE(req: Request) {
+  const id = Number(new URL(req.url).searchParams.get('id'));
+  if (!id) return NextResponse.json({ error:'id requis' }, { status:400 });
+  await db.delete(collaborateurs).where(eq(collaborateurs.id, id));
+  return NextResponse.json({ ok:true });
 }

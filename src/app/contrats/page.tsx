@@ -46,7 +46,7 @@ export default function ContratsPage() {
 
         <Paper sx={{ p:2, mb:2 }}>
           <Stack direction="row" spacing={2}>
-            <TextField size="small" label="Recherche (client/titre)" variant="outlined" value={q} onChange={e=>setQ(e.target.value)} />
+            <TextField size="small" label="Recherche (client/titre)" variant="outlined" InputLabelProps={{ shrink: true }} value={q} onChange={e=>setQ(e.target.value)} />
             <Button variant="outlined" onClick={load}>Filtrer</Button>
             <Button variant="contained" onClick={()=>setOpen(true)}>Nouveau contrat</Button>
           </Stack>
@@ -68,7 +68,7 @@ export default function ContratsPage() {
                   {clients.map(c => <MenuItem key={c.id} value={c.id}>{c.nom}</MenuItem>)}
                 </Select>
               </FormControl>
-              <TextField label="Titre" value={form.titre} onChange={e=>setForm(f=>({ ...f, titre:e.target.value }))} />
+              <TextField label="Titre" value={form.titre} InputLabelProps={{ shrink: true }} onChange={e=>setForm(f=>({ ...f, titre:e.target.value }))} />
             </Stack>
           </DialogContent>
           <DialogActions>

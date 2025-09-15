@@ -39,7 +39,7 @@ export default function CollaborateursPage() {
 
         <Paper sx={{ p:2, mb:2 }}>
           <Stack direction="row" spacing={2}>
-            <TextField size="small" label="Recherche (nom/email/role/client)" variant="outlined" value={q} onChange={e=>setQ(e.target.value)} />
+            <TextField size="small" label="Recherche (nom/email/role/client)" variant="outlined" InputLabelProps={{ shrink: true }} value={q} onChange={e=>setQ(e.target.value)} />
             <Button variant="outlined" onClick={load}>Filtrer</Button>
             <Button variant="contained" onClick={()=>setOpen(true)}>Nouveau collaborateur</Button>
           </Stack>
@@ -53,9 +53,9 @@ export default function CollaborateursPage() {
           <DialogTitle>Nouveau collaborateur</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt:1 }}>
-              <TextField label="Nom" variant="outlined" value={form.nom} onChange={e=>setForm(f=>({ ...f, nom:e.target.value }))}/>
-              <TextField label="Email" variant="outlined" value={form.email} onChange={e=>setForm(f=>({ ...f, email:e.target.value }))}/>
-              <TextField label="Rôle" variant="outlined" value={form.role} onChange={e=>setForm(f=>({ ...f, role:e.target.value }))}/>
+              <TextField label="Nom" variant="outlined" InputLabelProps={{ shrink: true }} value={form.nom} onChange={e=>setForm(f=>({ ...f, nom:e.target.value }))}/>
+              <TextField label="Email" variant="outlined" InputLabelProps={{ shrink: true }} value={form.email} onChange={e=>setForm(f=>({ ...f, email:e.target.value }))}/>
+              <TextField label="Rôle" variant="outlined" InputLabelProps={{ shrink: true }} value={form.role} onChange={e=>setForm(f=>({ ...f, role:e.target.value }))}/>
             </Stack>
           </DialogContent>
           <DialogActions>

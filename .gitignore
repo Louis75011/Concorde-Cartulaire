@@ -38,11 +38,14 @@ Thumbs.db
 dist
 *.log
 
-# Drizzle migrations et générés si présents
+# Drizzle migrations et snapshots
 drizzle/*.sqlite
 drizzle/*.db
 drizzle/migrations/*-journal.json
 drizzle/migrations/*-journal.txt
+drizzle/*.sql
+drizzle/*_snapshot.json
+drizzle/*_journal.json
 
 # Cache
 .next/cache

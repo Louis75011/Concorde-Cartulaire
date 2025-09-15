@@ -1,11 +1,21 @@
 // README
 
+// Propositions / Precisions supplementaires & solution intégrée pour gérer : Clients (données, contrats, facturation) Collaborateurs (accès, rôles, affectations) Prestataires (typologie, missions, suivi) Processus contrat vendeur ↔ demandeur Paiement et suivi via outils tiers (GoCardless, SlimPay, CRM, GnuCash ; authentification moins forte mais similaire si autre est gratuit, idem pour paiement). Typologie des gens. 
+
+// Choix techniques utilisés, listés et pourquoi (postgre next neon drizzle etc)
+
 // Draft Mercuriale des Chartes
 // Mercuriale des Chartes
 // Cartulaire : évoque la tradition médiévale, les registres d’actes, chartes et titres. Cela inspire sérieux, enracinement, mémoire. Idéal pour un site qui veut se poser comme gardien et ordonnateur de documents.
 // Concordancier : renvoie à l’outil d’indexation des mots dans un corpus, mais aussi à l’idée d’harmonie (concordia). Plus technique, moins chaleureux, mais efficace si l’accent est mis sur recherche et analyse.
 // Présenter et défendre le choix des technologies employées
 // Présenter les fonctionnalités développées et les potentielles fonctionnalités à développer prochainement (?).
+
+// 3. Typologie des prestataires Techniques : dev front (React/TS), back (Quarkus), DevOps (Proxmox, Debian, IaC). Fonctionnels : CRM, facturation, intégration marketplace. Support / Relation client : assistance, formation, suivi qualité. Juridique : gestion contrats, cession de droits, conformité RGPD.
+
+// 4. Pré-sélection d’outils Paiement / Abonnements : GoCardless, SlimPay. Comptabilité : GnuCash (open source) ou équivalent SaaS. CRM : HubSpot (cloud), Dolibarr (open source), ou déeloppement interne connecté à la BDD. Infra : Proxmox (VM), PostgreSQL (BDD), Debian (OS). Sécurité : FIDO2 (auth forte), OTP SMS (signature).
+
+// 5. Proposition / Positionnement Mise en place d’une base SQL PostgreSQL modélisée (diagrammes DBeaver). Développement d’une interface admin (gestion clients, contrats, factures, prestataires). Intégration progressive des briques externes (paiement, CRM, comptabilité). Signature électronique sécurisée (OTP SMS). Fixation d’un prix → soit forfait par lot fonctionnel, soit TJM en régie.
 
 //  Explication notebookLm
 // Impressions écrans api / pages
