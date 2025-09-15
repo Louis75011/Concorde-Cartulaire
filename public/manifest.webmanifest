@@ -1,0 +1,9 @@
+{
+  "name": "Draft V0.5 \u2014 Back-office",
+  "short_name": "DraftV0.5",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d47a1",
+  "icons": []
+}
