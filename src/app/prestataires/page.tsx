@@ -46,7 +46,7 @@ export default function PrestatairesPage() {
 
   useEffect(() => {
     load();
-  }, [load]);
+  }, []);
 
   const cols = useMemo(
     () => [

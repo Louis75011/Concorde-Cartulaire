@@ -44,7 +44,7 @@ export default function CollaborateursPage() {
   };
   useEffect(() => {
     load();
-  }, [load]);
+  }, []);
 
   const cols = useMemo(
     () => [
