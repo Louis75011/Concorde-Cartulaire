@@ -50,9 +50,9 @@ export default function ClientsPage() {
     load();
   }, []);
 
-  useEffect(() => {
-    console.log("Clients chargés :", rows);
-  }, [rows]);
+  // useEffect(() => {
+  //   console.log("Clients chargés :", rows);
+  // }, [rows]);
 
   const cols = useMemo(
     () => [
