@@ -59,6 +59,7 @@ export default function ContratsPage() {
     setClients(await r.json());
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     load();
     loadOpts();
