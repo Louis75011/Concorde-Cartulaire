@@ -1,6 +1,8 @@
+// src/components/Nav.tsx
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   AppBar,
   Toolbar,
@@ -10,6 +12,8 @@ import {
   BottomNavigation,
   BottomNavigationAction,
   Paper,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
@@ -20,6 +24,7 @@ import GroupIcon from "@mui/icons-material/Group";
 import PaymentIcon from "@mui/icons-material/Payment";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import SettingsIcon from "@mui/icons-material/Settings";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded"; // ✚ croix
 import Image from "next/image";
 
 const links = [
@@ -37,27 +42,38 @@ const links = [
 export function Nav() {
   const [value, setValue] = useState(0);
   const [isAuth, setIsAuth] = useState<boolean | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    (async () => {
       try {
         const res = await fetch("/api/auth/me");
         setIsAuth(res.ok);
       } catch {
         setIsAuth(false);
       }
-    };
-    checkAuth();
+    })();
   }, []);
+
+  const logout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {}
+    // redirige proprement
+    router.push("/login");
+    // ce fallback force la navigation si un CSP bloque le client router
+    window.location.href = "/login";
+  };
 
   return (
     <>
       {/* Desktop */}
       <AppBar position="static" sx={{ display: { xs: "none", lg: "block" } }}>
         <Toolbar>
-          <Box
-            sx={{ display: "flex", alignItems: "center", gap: 1, flexGrow: 1 }}
-          >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexGrow: 1 }}>
             <Image
               src="/assets/cc-draft-logo.jpg"
               alt="Logo"
@@ -65,34 +81,38 @@ export function Nav() {
               height={42}
               style={{ borderRadius: 4 }}
             />
-            <Typography
-              variant="h6"
-              sx={{ fontSize: "1.1rem", fontWeight: 600, lineHeight: 1 }}
-            >
+            <Typography variant="h6" sx={{ fontSize: "1.1rem", fontWeight: 600, lineHeight: 1 }}>
               Concorde
               <br />
               Cartulaire
             </Typography>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.7)" }}
-            >
+            <Typography variant="subtitle2" sx={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.7)" }}>
               (draft)
             </Typography>
           </Box>
 
-          <Box sx={{ display: "flex", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {isAuth ? (
-              links.map((link) => (
-                <Button
-                  key={link.href}
-                  color="inherit"
-                  component={Link}
-                  href={link.href}
-                >
-                  {link.label}
-                </Button>
-              ))
+              <>
+                {links.map((link) => (
+                  <Button key={link.href} color="inherit" component={Link} href={link.href}>
+                    {link.label}
+                  </Button>
+                ))}
+                {/* ✚ icône croix = Déconnexion */}
+                <Tooltip title="Se déconnecter">
+                  <span>
+                    <IconButton
+                      aria-label="Déconnexion"
+                      onClick={logout}
+                      disabled={loggingOut}
+                      sx={{ ml: 0.5, color: "inherit" }}
+                    >
+                      <CloseRoundedIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </>
             ) : (
               <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.7)" }}>
                 Authentification requise
@@ -131,6 +151,13 @@ export function Nav() {
                 sx={{ flex: "1 0 33%", py: 0.5, pt: 0.5, pb: 3 }}
               />
             ))}
+            {/* ✚ action Déconnexion */}
+            <BottomNavigationAction
+              label={loggingOut ? "…" : "Quitter"}
+              icon={<CloseRoundedIcon />}
+              onClick={logout}
+              sx={{ flex: "1 0 33%", py: 0.5, pt: 0.5, pb: 3 }}
+            />
           </BottomNavigation>
         ) : (
           <Box sx={{ p: 2, textAlign: "center" }}>

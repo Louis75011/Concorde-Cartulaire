@@ -26,6 +26,17 @@ const PROTECTED = [
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
+//   const token = req.cookies.get("sid")?.value;
+//   if (!token) return NextResponse.redirect(new URL("/login", req.url));
+
+//   try {
+//     await jwtVerify(token, secret);
+//     return NextResponse.next();
+//   } catch {
+//     return NextResponse.redirect(new URL("/login", req.url));
+//   }
+// }
+
   // === Auth check ===
   const path = req.nextUrl.pathname;
   if (PROTECTED.some((r) => r.test(path))) {
@@ -86,4 +97,7 @@ export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
   ],
+
+// export const config = {
+//   matcher: ["/clients/:path*", "/contrats/:path*", "/factures/:path*", "/prestataires/:path*", "/collaborateurs/:path*", "/paiements/:path*"],
 };

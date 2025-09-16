@@ -1,0 +1,15 @@
+Table clients
+
+Chaque client a un id unique (clé primaire).
+
+Infos stockées : nom, email (unique), téléphone, adresse, et created_at (date/heure de création).
+
+Table contrats
+
+Chaque contrat a un id unique (clé primaire).
+
+Il est lié à un client via client_id (clé étrangère pointant sur clients.id).
+
+Infos stockées : intitule (nom du contrat), date_debut, date_fin, montant, et statut (qui peut être brouillon, actif ou clos).
+
+👉 En résumé : un client peut avoir plusieurs contrats, mais chaque contrat appartient à un seul client
