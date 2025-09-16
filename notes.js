@@ -26,7 +26,7 @@
 // Développement d’une interface admin (gestion clients, contrats, factures, prestataires). Intégration progressive des briques externes (paiement, CRM, comptabilité). Signature électronique sécurisée (OTP SMS). Fixation d’un prix → soit forfait par lot fonctionnel, soit TJM en régie.
 
 
-// PAIEMENT, FACTURATION CRM, EXPLI BASE INTERFACES STYLISE (gestion clients, contrats, factures, prestataires & TABLES RESPECTIVES ET LIAISIONS)
+// PAIEMENT GOCARDLESS OU SLIMPAY, FACTURATION CRM GENERE INTE MARKETPLACE (?), EXPLI BASE INTERFACES STYLISE (gestion clients, contrats, factures, prestataires & TABLES RESPECTIVES ET LIAISIONS)
 
 
 //  Explication notebookLm
