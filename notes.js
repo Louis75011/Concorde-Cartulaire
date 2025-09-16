@@ -16,12 +16,18 @@
 // 💻 Expérience fluide : l’utilisateur clique → empreinte digitale / FaceID / clé FIDO → connexion directe.
 // 📱 Interopérable : fonctionne sur mobile et desktop, avec synchronisation iCloud Keychain, Google Password Manager, etc.
 
+// DANS QUEL MESURE AIJE UTILISER QUARKUS POSTGRE DBVISUALISER-NEON
+
 // 3. Typologie des prestataires Techniques : dev front (React/TS), back (Quarkus), DevOps (Proxmox, Debian, IaC). Fonctionnels : CRM, facturation, intégration marketplace. Support / Relation client : assistance, formation, suivi qualité. Juridique : gestion contrats, cession de droits, conformité RGPD.
 
 // 4. Pré-sélection d’outils Paiement / Abonnements : GoCardless, SlimPay. Comptabilité : GnuCash (open source) ou équivalent SaaS. CRM : HubSpot (cloud), Dolibarr (open source), ou déeloppement interne connecté à la BDD. Infra : Proxmox (VM), PostgreSQL (BDD), Debian (OS). Sécurité : FIDO2 (auth forte), OTP SMS (signature).
 
 // 5. Proposition / Positionnement Mise en place d’une base SQL PostgreSQL modélisée (diagrammes DBeaver). 
 // Développement d’une interface admin (gestion clients, contrats, factures, prestataires). Intégration progressive des briques externes (paiement, CRM, comptabilité). Signature électronique sécurisée (OTP SMS). Fixation d’un prix → soit forfait par lot fonctionnel, soit TJM en régie.
+
+
+// PAIEMENT, FACTURATION CRM, EXPLI BASE INTERFACES STYLISE (gestion clients, contrats, factures, prestataires & TABLES RESPECTIVES ET LIAISIONS)
+
 
 //  Explication notebookLm
 // Impressions écrans api / pages
