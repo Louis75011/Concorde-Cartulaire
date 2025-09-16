@@ -8,7 +8,7 @@ export default function SettingsPage() {
   const [docusealKey, setDS] = useState('');
 
   const testGC = async () => {
-    const r = await fetch('/api/payments/gocardless/ping', { method: 'POST' });
+    const r = await fetch('/api/paiements/gocardless/ping', { method: 'POST' });
     alert(await r.text());
   };
   const testDS = async () => {

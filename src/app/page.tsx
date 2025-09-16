@@ -89,10 +89,10 @@ export default function DashboardPage() {
             </Paper>
           </Grid>
 
-          {/* Payments */}
+          {/* Paiements */}
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 2 }}>
-              <Typography variant="h6">Payments</Typography>
+              <Typography variant="h6">Paiements</Typography>
               {loading ? (
                 <Stack alignItems="center" sx={{ py: 2 }}>
                   <CircularProgress size={24} />

@@ -71,7 +71,7 @@ export const affectations = pgTable("affectations", {
   date_fin: timestamp("date_fin"),
 });
 
-/** ---------- Providers paiement + Prélèvements (pour /payments) ---------- */
+/** ---------- Providers paiement + Prélèvements (pour /paiements) ---------- */
 export const payment_providers = pgTable("payment_providers", {
   id: serial("id").primaryKey(),
   code: text("code").notNull(),

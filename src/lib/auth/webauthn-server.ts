@@ -4,7 +4,7 @@ import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
-import { db } from "@/db/client";
+import { db } from "@/server/db/client";
 import { users, user_passkeys } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
