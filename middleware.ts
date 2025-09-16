@@ -1,39 +1,32 @@
+// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Génère un nonce base64 sans Buffer (compatible Edge)
 function genNonce(len = 16) {
   const bytes = new Uint8Array(len);
   crypto.getRandomValues(bytes);
-  let bin = "";
-  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  return btoa(bin);
+  let s = "";
+  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s);
 }
 
 export function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
-  // Pas de CSP en dev (et, si souhaité, en preview Vercel)
-  const isDev = process.env.NODE_ENV !== "production";
-  const isPreview = process.env.VERCEL_ENV === "preview";
-  if (isDev || isPreview) return res;
-
-  // Prod : CSP + nonce
+  const vercelEnv = process.env.VERCEL_ENV; // 'development' | 'preview' | 'production'
+  const isProd = vercelEnv === "production";
   const nonce = genNonce();
   res.headers.set("x-nonce", nonce);
 
-  const scriptSrc = [
-    "'self'",
-    `'nonce-${nonce}'`, // TEMPORAIRE : à retirer quand tout est noncé
-    "'unsafe-inline'",
-    "'unsafe-eval'",
-  ];
+  const scriptSrc = isProd
+    // STRICTE en prod : pas d'unsafe, pas de strict-dynamic
+    ? ["'self'", `'nonce-${nonce}'`]
+    // RELAX en preview : on débloque Next
+    : ["'self'", "'unsafe-inline'", "'unsafe-eval'"];
 
-  const styleSrc = [
-    "'self'",
-    `'nonce-${nonce}'`, // TEMPORAIRE : à retirer quand Emotion/MUI reçoit bien le nonce
-    "'unsafe-inline'",
-  ];
+  const styleSrc = isProd
+    ? ["'self'", `'nonce-${nonce}'`]
+    : ["'self'", "'unsafe-inline'"];
 
   const csp = [
     `default-src 'self'`,
@@ -60,5 +53,6 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
+  // On n’injecte pas la CSP sur les assets statiques _next
   matcher: ["/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)"],
 };
