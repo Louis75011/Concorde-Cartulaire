@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db/client';
+import { db } from "@/server/db/client";
 import { clients } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+
+export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest, { params }: any) {
   const id = Number(params.id);

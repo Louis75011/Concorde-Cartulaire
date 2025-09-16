@@ -29,7 +29,7 @@ const links = [
   { href: "/factures", label: "Factures", icon: <ReceiptIcon /> },
   { href: "/prestataires", label: "Prestataires", icon: <WorkIcon /> },
   { href: "/collaborateurs", label: "Collaborateurs", icon: <GroupIcon /> },
-  { href: "/payments", label: "payments", icon: <PaymentIcon /> },
+  { href: "/paiements", label: "Paiements", icon: <PaymentIcon /> },
   { href: "/signatures", label: "Signatures", icon: <EditNoteIcon /> },
   { href: "/settings", label: "Paramètres", icon: <SettingsIcon /> },
 ];

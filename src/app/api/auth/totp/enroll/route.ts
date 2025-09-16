@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
 import { seal } from '@/lib/crypto';
-import { db } from '@/db/client';
+import { db } from "@/server/db/client";
 import { user_totp } from '@/db/schema';
 import { getSession } from '@/lib/session';
 

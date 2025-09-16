@@ -3,6 +3,8 @@ import { db } from '@/server/db/client';
 import { clients, contrats, factures, prestataires, collaborateurs } from '@/server/db/schema';
 import { count } from 'drizzle-orm';
 
+export const runtime = 'nodejs';
+
 export async function GET() {
   // Totaux dynamiques
   const totalClients = await db.select({ count: count() }).from(clients);

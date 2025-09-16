@@ -3,6 +3,8 @@ import { db } from '@/server/db/client';
 import { factures, contrats, clients } from '@/server/db/schema';
 import { eq, ilike, or, desc } from 'drizzle-orm';
 
+export const runtime = 'nodejs';
+
 export async function GET(req: Request) {
   const q = new URL(req.url).searchParams.get('q')?.trim() || '';
   const where = q ? or(

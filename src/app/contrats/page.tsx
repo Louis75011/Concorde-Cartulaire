@@ -25,6 +25,8 @@ import {
 } from "@mui/material";
 import { Nav } from "@/components/Nav";
 
+export const runtime = 'nodejs';
+
 type ContratRow = {
   id: number;
   client: string;
@@ -138,7 +140,7 @@ export default function ContratsPage() {
         {loading ? (
           <Stack alignItems="center" sx={{ mt: 4 }}>
             <CircularProgress />
-            <Typography>Chargement...</Typography>
+            <Typography>Chargement des données...</Typography>
           </Stack>
         ) : (
           <div style={{ height: 540, width: "100%" }}>

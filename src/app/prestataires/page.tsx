@@ -102,7 +102,7 @@ export default function PrestatairesPage() {
         {loading ? (
           <Stack alignItems="center" sx={{ mt: 4 }}>
             <CircularProgress />
-            <Typography>Chargement...</Typography>
+            <Typography>Chargement des données...</Typography>
           </Stack>
         ) : (
           <div style={{ height: 540, width: "100%" }}>

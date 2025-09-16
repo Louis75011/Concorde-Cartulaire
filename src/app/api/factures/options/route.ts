@@ -3,6 +3,8 @@ import { db } from '@/server/db/client';
 import { contrats, clients } from '@/server/db/schema';
 import { eq, desc } from 'drizzle-orm';
 
+export const runtime = 'nodejs';
+
 export async function GET() {
   const rows = await db
     .select({ id: contrats.id, titre: contrats.titre, client: clients.nom })

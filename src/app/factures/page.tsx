@@ -1,6 +1,11 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridToolbarContainer,
+  GridToolbarQuickFilter,
+  GridToolbarExport,
+} from "@mui/x-data-grid";
 import {
   Container,
   Typography,
@@ -20,47 +25,38 @@ import {
 } from "@mui/material";
 import { Nav } from "@/components/Nav";
 
-type FactureRow = {
+type ContratRow = {
   id: number;
   client: string;
-  contrat: string;
-  emission: string | null;
-  echeance: string | null;
-  ht: string | null;
-  ttc: string | null;
-  statut: string | null;
-  contrat_id: number;
+  titre: string;
+  cree_le: string;
+  client_id: number;
 };
-type ContratOpt = { id: number; titre: string; client: string };
+type ClientOpt = { id: number; nom: string };
 
-export default function FacturesPage() {
-  const [rows, setRows] = useState<FactureRow[]>([]);
+export default function ContratsPage() {
+  const [rows, setRows] = useState<ContratRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
-  const [contrats, setContrats] = useState<ContratOpt[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState<{
-    contrat_id: number | "";
-    montant_ht: string;
-    tva: string;
-    date_echeance?: string;
-  }>({ contrat_id: "", montant_ht: "", tva: "20.00" });
+  const [clients, setClients] = useState<ClientOpt[]>([]);
+  const [form, setForm] = useState<{ client_id: number | ""; titre: string }>({
+    client_id: "",
+    titre: "",
+  });
 
-  const euro = (v?: string | null) =>
-    v
-      ? Number(v).toLocaleString("fr-FR", { minimumFractionDigits: 2 }) + " €"
-      : "—";
-
+  // Chargement principal
   const load = async () => {
     setLoading(true);
-    const r = await fetch("/api/factures?q=" + encodeURIComponent(q));
+    const r = await fetch("/api/contrats?q=" + encodeURIComponent(q));
     const data = await r.json();
     setRows(data);
     setLoading(false);
   };
+
   const loadOpts = async () => {
-    const r = await fetch("/api/factures/options");
-    setContrats(await r.json());
+    const r = await fetch("/api/contrats/options");
+    setClients(await r.json());
   };
 
   useEffect(() => {
@@ -68,67 +64,60 @@ export default function FacturesPage() {
     loadOpts();
   }, []);
 
+  // Colonnes
   const cols = useMemo(
     () => [
       { field: "id", headerName: "#", width: 80 },
       { field: "client", headerName: "Client", flex: 1 },
-      { field: "contrat", headerName: "Contrat", flex: 1.2 },
+      { field: "titre", headerName: "Titre", flex: 1.2 },
       {
-        field: "emission",
-        headerName: "Émission",
-        width: 120,
-        valueFormatter: (p: any) =>
-          p.value ? new Date(p.value).toLocaleDateString("fr-FR") : "",
+        field: "cree_le",
+        headerName: "Créé le",
+        width: 150,
+        valueFormatter: (params: any) =>
+          params.value
+            ? new Date(params.value).toLocaleDateString("fr-FR")
+            : "",
       },
-      {
-        field: "echeance",
-        headerName: "Échéance",
-        width: 120,
-        valueFormatter: (p: any) =>
-          p.value ? new Date(p.value).toLocaleDateString("fr-FR") : "",
-      },
-      {
-        field: "ht",
-        headerName: "HT",
-        width: 120,
-        valueFormatter: (p: any) => euro(p.value),
-      },
-      {
-        field: "ttc",
-        headerName: "TTC",
-        width: 120,
-        valueFormatter: (p: any) => euro(p.value),
-      },
-      { field: "statut", headerName: "Statut", width: 140 },
     ],
     []
   );
 
+  // Création
   const onCreate = async () => {
-    await fetch("/api/factures", {
+    await fetch("/api/contrats", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
     setOpen(false);
-    setForm({ contrat_id: "", montant_ht: "", tva: "20.00" });
+    setForm({ client_id: "", titre: "" });
     await load();
   };
+
+  // Toolbar
+  function CustomToolbar() {
+    return (
+      <GridToolbarContainer>
+        <GridToolbarQuickFilter />
+        <GridToolbarExport />
+      </GridToolbarContainer>
+    );
+  }
 
   return (
     <>
       <Nav />
       <Container sx={{ py: 4 }}>
         <Typography variant="h4" gutterBottom>
-          Factures
+          Contrats
         </Typography>
 
-        {/* Recherche + création */}
         <Paper sx={{ p: 2, mb: 2 }}>
           <Stack direction="row" spacing={2}>
             <TextField
               size="small"
-              label="Recherche (client/contrat/statut)"
+              label="Recherche (client/titre)"
               variant="outlined"
               InputLabelProps={{ shrink: true }}
               value={q}
@@ -138,83 +127,59 @@ export default function FacturesPage() {
               Filtrer
             </Button>
             <Button variant="contained" onClick={() => setOpen(true)}>
-              Nouvelle facture
+              Nouveau contrat
             </Button>
           </Stack>
         </Paper>
 
-        {/* Loader ou tableau */}
         {loading ? (
           <Stack alignItems="center" sx={{ mt: 4 }}>
             <CircularProgress />
-            <Typography>Chargement...</Typography>
+            <Typography sx={{ mt: 1 }}>Chargement des données...</Typography>
           </Stack>
         ) : (
-          <div style={{ height: 560, width: "100%" }}>
+          <div style={{ height: 540, width: "100%" }}>
             <DataGrid
               rows={rows}
               columns={cols}
               getRowId={(row) => row.id}
-              slots={{ toolbar: GridToolbar }}
+              slots={{ toolbar: CustomToolbar }}
               disableRowSelectionOnClick
             />
           </div>
         )}
 
-        {/* Dialog de création */}
-        <Dialog
-          open={open}
-          onClose={() => setOpen(false)}
-          fullWidth
-          maxWidth="sm"
-        >
-          <DialogTitle>Nouvelle facture</DialogTitle>
+        <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+          <DialogTitle>Nouveau contrat</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
               <FormControl fullWidth>
-                <InputLabel id="flbl">Contrat</InputLabel>
+                <InputLabel id="clbl">Client</InputLabel>
                 <Select
-                  labelId="flbl"
-                  label="Contrat"
-                  value={form.contrat_id === "" ? "" : String(form.contrat_id)}
+                  labelId="clbl"
+                  label="Client"
+                  value={form.client_id === "" ? "" : String(form.client_id)}
                   onChange={(e) =>
                     setForm((f) => ({
                       ...f,
-                      contrat_id: Number(e.target.value),
+                      client_id: Number(e.target.value),
                     }))
                   }
                 >
-                  {contrats.map((c) => (
+                  {clients.map((c) => (
                     <MenuItem key={c.id} value={c.id}>
-                      {c.client} — {c.titre}
+                      {c.nom}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
               <TextField
-                label="Montant HT (€)"
-                type="number"
+                label="Titre"
+                variant="outlined"
                 InputLabelProps={{ shrink: true }}
-                value={form.montant_ht}
+                value={form.titre}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, montant_ht: e.target.value }))
-                }
-              />
-              <TextField
-                label="TVA (%)"
-                type="number"
-                InputLabelProps={{ shrink: true }}
-                value={form.tva}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, tva: e.target.value }))
-                }
-              />
-              <TextField
-                label="Échéance (YYYY-MM-DD)"
-                InputLabelProps={{ shrink: true }}
-                value={form.date_echeance || ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, date_echeance: e.target.value }))
+                  setForm((f) => ({ ...f, titre: e.target.value }))
                 }
               />
             </Stack>
@@ -224,7 +189,7 @@ export default function FacturesPage() {
             <Button
               variant="contained"
               onClick={onCreate}
-              disabled={form.contrat_id === "" || !form.montant_ht.trim()}
+              disabled={form.client_id === "" || !form.titre.trim()}
             >
               Créer
             </Button>

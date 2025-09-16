@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db/client';
+import { db } from "@/server/db/client";
 import { sign_requests, documents } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 

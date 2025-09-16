@@ -29,11 +29,9 @@ export default function CollaborateursPage() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState<{
-    nom: string;
-    email: string;
-    role: string;
-  }>({ nom: "", email: "", role: "" });
+  const [form, setForm] = useState<{ nom: string; email: string; role: string }>(
+    { nom: "", email: "", role: "" }
+  );
 
   const load = async () => {
     setLoading(true);
@@ -42,6 +40,7 @@ export default function CollaborateursPage() {
     setRows(data);
     setLoading(false);
   };
+
   useEffect(() => {
     load();
   }, []);
@@ -76,7 +75,6 @@ export default function CollaborateursPage() {
           Collaborateurs
         </Typography>
 
-        {/* Recherche + boutons */}
         <Paper sx={{ p: 2, mb: 2 }}>
           <Stack direction="row" spacing={2}>
             <TextField
@@ -96,11 +94,10 @@ export default function CollaborateursPage() {
           </Stack>
         </Paper>
 
-        {/* Loader ou tableau */}
         {loading ? (
           <Stack alignItems="center" sx={{ mt: 4 }}>
             <CircularProgress />
-            <Typography>Chargement...</Typography>
+            <Typography>Chargement des données...</Typography>
           </Stack>
         ) : (
           <div style={{ height: 560, width: "100%" }}>
@@ -114,52 +111,30 @@ export default function CollaborateursPage() {
           </div>
         )}
 
-        {/* Dialog création */}
-        <Dialog
-          open={open}
-          onClose={() => setOpen(false)}
-          fullWidth
-          maxWidth="sm"
-        >
+        <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
           <DialogTitle>Nouveau collaborateur</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField
                 label="Nom"
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
                 value={form.nom}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, nom: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
               />
               <TextField
                 label="Email"
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
                 value={form.email}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, email: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               />
               <TextField
                 label="Rôle"
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
                 value={form.role}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, role: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
               />
             </Stack>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpen(false)}>Annuler</Button>
-            <Button
-              variant="contained"
-              onClick={onCreate}
-              disabled={!form.nom || !form.email}
-            >
+            <Button variant="contained" onClick={onCreate} disabled={!form.nom || !form.email}>
               Créer
             </Button>
           </DialogActions>

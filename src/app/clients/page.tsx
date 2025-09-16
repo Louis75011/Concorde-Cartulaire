@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   DataGrid,
   GridToolbarContainer,
@@ -10,14 +10,14 @@ import {
   Container,
   Typography,
   Paper,
-  Stack,
+  CircularProgress,
   TextField,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  CircularProgress,
+  Box,
 } from "@mui/material";
 import { Nav } from "@/components/Nav";
 
@@ -40,33 +40,20 @@ export default function ClientsPage() {
 
   const load = async () => {
     setLoading(true);
-    const r = await fetch("/api/clients?q=" + encodeURIComponent(q));
-    const data = await r.json();
-    setRows(data);
-    setLoading(false);
+    try {
+      const r = await fetch(`/api/clients?q=${encodeURIComponent(q)}`);
+      const data = await r.json();
+      setRows(data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     load();
   }, []);
 
-  // useEffect(() => {
-  //   console.log("Clients chargés :", rows);
-  // }, [rows]);
-
-  const cols = useMemo(
-    () => [
-      { field: "id", headerName: "ID", width: 80 },
-      { field: "nom", headerName: "Nom", flex: 1 },
-      { field: "email", headerName: "Email", flex: 1 },
-      { field: "tel", headerName: "Téléphone", width: 160 },
-      { field: "entreprise", headerName: "Entreprise", flex: 1 },
-      { field: "secteur", headerName: "Secteur", width: 160 },
-    ],
-    []
-  );
-
-  const onCreate = async () => {
+  const handleAdd = async () => {
     await fetch("/api/clients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -74,111 +61,115 @@ export default function ClientsPage() {
     });
     setOpen(false);
     setForm({ nom: "", email: "" });
-    await load();
+    load();
   };
-
-  function CustomToolbar() {
-    return (
-      <GridToolbarContainer>
-        <GridToolbarQuickFilter />
-        <GridToolbarExport />
-      </GridToolbarContainer>
-    );
-  }
 
   return (
     <>
       <Nav />
-      <Container sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Clients
-        </Typography>
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h5" gutterBottom>
+            Clients
+          </Typography>
 
-        {/* Filtre + bouton création */}
-        <Paper sx={{ p: 2, mb: 2 }}>
-          <Stack direction="row" spacing={2}>
+          <Box sx={{ mb: 2, display: "flex", gap: 2 }}>
             <TextField
-              label="Nom"
-              variant="outlined"
-              InputLabelProps={{ shrink: true }} // ✅ évite bug d’affichage
               value={q}
               onChange={(e) => setQ(e.target.value)}
+              placeholder="Rechercher un client"
+              size="small"
             />
-            <Button variant="outlined" onClick={load}>
-              Filtrer
+            <Button variant="contained" onClick={load}>
+              Rechercher
             </Button>
-            <Button variant="contained" onClick={() => setOpen(true)}>
-              Nouveau client
+            <Button variant="outlined" onClick={() => setOpen(true)}>
+              Ajouter
             </Button>
-          </Stack>
-        </Paper>
+          </Box>
 
-        {/* Loader ou tableau */}
-        {loading ? (
-          <Stack alignItems="center" sx={{ mt: 4 }}>
-            <CircularProgress />
-            <Typography>Chargement...</Typography>
-          </Stack>
-        ) : (
-          <div style={{ height: 520, width: "100%" }}>
+          {loading ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                p: 4,
+              }}
+            >
+              <CircularProgress />
+              <Typography variant="body2" sx={{ mt: 2 }}>
+                Chargement des données...
+              </Typography>
+            </Box>
+          ) : (
             <DataGrid
               rows={rows}
-              columns={cols}
-              getRowId={(row) => row.id}
-              slots={{ toolbar: CustomToolbar }}
-              disableRowSelectionOnClick
+              columns={[
+                { field: "id", headerName: "ID", width: 70 },
+                { field: "nom", headerName: "Nom", width: 150 },
+                { field: "email", headerName: "Email", width: 200 },
+                { field: "entreprise", headerName: "Entreprise", width: 150 },
+                { field: "secteur", headerName: "Secteur", width: 150 },
+              ]}
+              autoHeight
+              pageSizeOptions={[5, 10, 20]}
+              slots={{
+                toolbar: () => (
+                  <GridToolbarContainer>
+                    <GridToolbarQuickFilter />
+                    <GridToolbarExport />
+                  </GridToolbarContainer>
+                ),
+              }}
             />
-          </div>
-        )}
+          )}
+        </Paper>
 
-        {/* Dialog création */}
+        {/* Dialog ajout client */}
         <Dialog open={open} onClose={() => setOpen(false)}>
-          <DialogTitle>Nouveau client</DialogTitle>
+          <DialogTitle>Ajouter un client</DialogTitle>
           <DialogContent>
-            <Stack spacing={2} sx={{ mt: 1 }}>
-              <TextField
-                label="Nom"
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
-                value={form.nom || ""}
-                onChange={(e) => setForm({ ...form, nom: e.target.value })}
-              />
-              <TextField
-                label="Email"
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
-                value={form.email || ""}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
-              <TextField
-                label="Téléphone"
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
-                value={form.tel || ""}
-                onChange={(e) => setForm({ ...form, tel: e.target.value })}
-              />
-              <TextField
-                label="Entreprise"
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
-                value={form.entreprise || ""}
-                onChange={(e) =>
-                  setForm({ ...form, entreprise: e.target.value })
-                }
-              />
-              <TextField
-                label="Secteur"
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
-                value={form.secteur || ""}
-                onChange={(e) => setForm({ ...form, secteur: e.target.value })}
-              />
-            </Stack>
+            <TextField
+              margin="dense"
+              label="Nom"
+              fullWidth
+              value={form.nom || ""}
+              onChange={(e) => setForm({ ...form, nom: e.target.value })}
+            />
+            <TextField
+              margin="dense"
+              label="Email"
+              fullWidth
+              value={form.email || ""}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+            <TextField
+              margin="dense"
+              label="Téléphone"
+              fullWidth
+              value={form.tel || ""}
+              onChange={(e) => setForm({ ...form, tel: e.target.value })}
+            />
+            <TextField
+              margin="dense"
+              label="Entreprise"
+              fullWidth
+              value={form.entreprise || ""}
+              onChange={(e) => setForm({ ...form, entreprise: e.target.value })}
+            />
+            <TextField
+              margin="dense"
+              label="Secteur"
+              fullWidth
+              value={form.secteur || ""}
+              onChange={(e) => setForm({ ...form, secteur: e.target.value })}
+            />
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpen(false)}>Annuler</Button>
-            <Button onClick={onCreate} variant="contained">
-              Créer
+            <Button onClick={handleAdd} variant="contained">
+              Ajouter
             </Button>
           </DialogActions>
         </Dialog>

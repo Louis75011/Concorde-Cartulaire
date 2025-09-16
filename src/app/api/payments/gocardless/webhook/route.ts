@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { db } from '@/db/client';
+import { db } from "@/server/db/client";
 import { prelevements } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+
+export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   const secret = process.env.GOCARDLESS_WEBHOOK_SECRET;

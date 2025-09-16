@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db/client';
+import { db } from "@/server/db/client";
 import { factures, contrats, clients } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+
+export const runtime = 'nodejs';
 
 export async function GET() {
   // Very basic CSV for GnuCash: date, invoice_id, customer, amount_ttc, status

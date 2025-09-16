@@ -7,4 +7,4 @@ const pool = new Pool({
   keepAlive: true,
 });
 
-export const db = drizzle(pool);
+export const db = drizzle(pool as any);

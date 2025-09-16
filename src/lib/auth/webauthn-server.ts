@@ -8,6 +8,8 @@ import { db } from "@/db/client";
 import { users, user_passkeys } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+export const runtime = 'nodejs';
+
 export const rpID = process.env.WEBAUTHN_RP_ID!;
 export const rpName = process.env.WEBAUTHN_RP_NAME!;
 export const origin = process.env.WEBAUTHN_ORIGIN!;

@@ -2,12 +2,24 @@ import {
   pgTable, serial, integer, varchar, text, timestamp, numeric, boolean, jsonb
 } from "drizzle-orm/pg-core";
 
+export const runtime = 'nodejs';
+
 /** ---------- Clients (minimal actuel) ---------- */
+// export const clients = pgTable("clients", {
+//   id: serial("id").primaryKey(),
+//   nom: varchar("nom", { length: 255 }).notNull(),
+//   email: varchar("email", { length: 255 }),
+//   cree_le: timestamp("cree_le").defaultNow().notNull(),
+// });
 export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
   nom: varchar("nom", { length: 255 }).notNull(),
-  email: varchar("email", { length: 255 }),
+  email: varchar("email", { length: 255 }).notNull(),
+  tel: varchar("tel", { length: 20 }),
+  entreprise: varchar("entreprise", { length: 255 }),
+  secteur: varchar("secteur", { length: 255 }),
   cree_le: timestamp("cree_le").defaultNow().notNull(),
+  date_creation: timestamp("date_creation").defaultNow(),
 });
 
 /** ---------- Contrats (minimal actuel) ---------- */

@@ -1,31 +1,29 @@
-import type { Metadata, Viewport } from 'next';
-import './globals.scss';
-import ThemeRegistry from './ThemeRegistry';
-import { headers } from 'next/headers';
+import type { Metadata, Viewport } from "next";
+import "./globals.scss";
+import ThemeRegistry from "./ThemeRegistry";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
-  title: 'Concorde Cartulaire',
-  description: 'Back-office Concorde Cartulaire',
-  applicationName: 'Concorde Cartulaire',
+  title: "Concorde Cartulaire",
+  description: "Back-office Concorde Cartulaire",
+  applicationName: "Concorde Cartulaire",
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0d47a1',
+  themeColor: "#0d47a1",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // attendre les headers
-  const hdrs = await headers();
-  const nonce = hdrs.get('x-nonce') ?? undefined;
-
+  // @ts-ignore
+  const nonce = headers().get("x-nonce") ?? undefined;
   return (
     <html lang="fr">
+      <head>{nonce && <meta property="csp-nonce" content={nonce} />}</head>
       <body>
-        {/* passer le nonce au ThemeRegistry */}
         <ThemeRegistry nonce={nonce}>{children}</ThemeRegistry>
       </body>
     </html>
