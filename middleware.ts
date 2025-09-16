@@ -1,6 +1,8 @@
-// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
+
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 function genNonce(len = 16) {
   const bytes = new Uint8Array(len);
@@ -10,20 +12,40 @@ function genNonce(len = 16) {
   return btoa(s);
 }
 
-export function middleware(req: NextRequest) {
+// Routes protégées
+const PROTECTED = [
+  /^\/clients/,
+  /^\/contrats/,
+  /^\/factures/,
+  /^\/prestataires/,
+  /^\/collaborateurs/,
+  /^\/paiements/,
+  /^\/settings/,
+];
+
+export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
-  const vercelEnv = process.env.VERCEL_ENV; // 'development' | 'preview' | 'production'
-  const isProd = vercelEnv === "production";
+  // === Auth check ===
+  const path = req.nextUrl.pathname;
+  if (PROTECTED.some((r) => r.test(path))) {
+    const token = req.cookies.get("sid")?.value;
+    if (!token) return NextResponse.redirect(new URL("/login", req.url));
+    try {
+      await jwtVerify(token, secret);
+    } catch {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+  }
+
+  // === CSP & headers ===
   const nonce = genNonce();
-  res.headers.set("x-nonce", nonce);
+  const vercelEnv = process.env.VERCEL_ENV;
+  const isProd = vercelEnv === "production";
 
   const scriptSrc = isProd
-    // STRICTE en prod : pas d'unsafe, pas de strict-dynamic
     ? ["'self'", `'nonce-${nonce}'`]
-    // RELAX en preview : on débloque Next
     : ["'self'", "'unsafe-inline'", "'unsafe-eval'"];
-
   const styleSrc = isProd
     ? ["'self'", `'nonce-${nonce}'`]
     : ["'self'", "'unsafe-inline'"];
@@ -43,16 +65,25 @@ export function middleware(req: NextRequest) {
   ].join("; ");
 
   res.headers.set("Content-Security-Policy", csp);
+  res.headers.set("x-nonce", nonce);
   res.headers.set("Referrer-Policy", "no-referrer");
   res.headers.set("X-Content-Type-Options", "nosniff");
   res.headers.set("X-Frame-Options", "DENY");
-  res.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  res.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  res.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()"
+  );
+  res.headers.set(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains; preload"
+  );
 
+  // return NextResponse.next();
   return res;
 }
 
 export const config = {
-  // On n’injecte pas la CSP sur les assets statiques _next
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+  ],
 };

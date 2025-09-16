@@ -1,18 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { finishRegistration } from '@/lib/auth/webauthn-server';
-import { getRegChallenge } from '@/lib/auth/challenges';
-import { createSession } from '@/lib/session';
+// src/app/api/auth/webauthn/register/verify/route.ts
+import { NextResponse } from "next/server";
+import { verifyRegistrationResponse } from "@simplewebauthn/server";
+import { cookies } from "next/headers";
+import { db } from "@/server/db/client";
+import { credentials } from "@/server/db/schema";
+import { createSession } from "@/server/auth/session";
+import { toBase64Url } from "@/server/webauthn/codec";
 
-export async function POST(req: NextRequest) {
+// export const runtime = "nodejs"
+
+export async function POST(req: Request) {
   const body = await req.json();
-  const email: string = body.email;
-  const userId: number = body.userId;
-  const expected = getRegChallenge(email);
-  if (!expected) return new NextResponse('Challenge manquant', { status: 400 });
-  const verification = await finishRegistration(userId, expected, body.response);
-  if (verification.verified) {
-    await createSession(userId);
-    return NextResponse.json({ ok: true });
+  const stateStr = (await cookies()).get("webauthn_reg_state")?.value;
+  if (!stateStr) return NextResponse.json({ ok: false, error: "no-state" }, { status: 400 });
+
+  const { challenge, uid } = JSON.parse(stateStr);
+
+  const { verified, registrationInfo } = await verifyRegistrationResponse({
+    response: body,
+    expectedChallenge: challenge,
+    expectedOrigin: process.env.WEBAUTHN_ORIGIN!,
+    expectedRPID: process.env.WEBAUTHN_RP_ID!,
+  });
+
+  if (!verified || !registrationInfo) {
+    return NextResponse.json({ ok: false }, { status: 400 });
   }
-  return NextResponse.json({ ok: false }, { status: 400 });
+
+  const { credentialID, credentialPublicKey, counter } = registrationInfo;
+
+  await db.insert(credentials).values({
+    userId: Number(uid),
+    // @ts-ignore
+    credentialID: toBase64Url(credentialID),         // string
+    publicKey: toBase64Url(credentialPublicKey),     // string
+    counter,
+  }).onConflictDoNothing();
+
+  await createSession(Number(uid));
+  return NextResponse.json({ ok: true });
 }

@@ -6,6 +6,13 @@ import { eq } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 
+function timingSafeEqualHex(a: string, b: string) {
+  const ba = Buffer.from(a, 'hex');
+  const bb = Buffer.from(b, 'hex');
+  if (ba.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ba, bb);
+}
+
 export async function POST(req: NextRequest) {
   const secret = process.env.GOCARDLESS_WEBHOOK_SECRET;
   if (!secret) return new NextResponse('Missing GOCARDLESS_WEBHOOK_SECRET', { status: 500 });
@@ -15,14 +22,15 @@ export async function POST(req: NextRequest) {
   if (!signature) return new NextResponse('Missing signature', { status: 400 });
 
   const computed = crypto.createHmac('sha256', secret).update(raw, 'utf8').digest('hex');
-  if (computed !== signature) return new NextResponse('Invalid signature', { status: 400 });
+  if (!timingSafeEqualHex(computed, signature)) return new NextResponse('Invalid signature', { status: 400 });
 
   const payload = JSON.parse(raw);
   for (const ev of payload.events ?? []) {
     const provider_event_id = ev.id;
-    const statut = ev?.details?.cause === 'payment_paid' || ev.action === 'paid' ? 'paid'
-                  : ev.action === 'failed' ? 'failed'
-                  : ev.action === 'cancelled' ? 'cancelled' : 'submitted';
+    const statut =
+      (ev?.details?.cause === 'payment_paid' || ev.action === 'paid') ? 'paid' :
+      ev.action === 'failed' ? 'failed' :
+      ev.action === 'cancelled' ? 'cancelled' : 'submitted';
 
     const found = await db.select().from(prelevements).where(eq(prelevements.provider_event_id, provider_event_id)).limit(1);
     if (found.length) {

@@ -11,6 +11,11 @@
 // Présenter et défendre le choix des technologies employées
 // Présenter les fonctionnalités développées et les potentielles fonctionnalités à développer prochainement (?).
 
+// WebAuthn / Passkey est effectivement bien plus pro que le combo email/mot de passe :
+// 🔒 Sécurité forte : cryptographie asymétrique, sans mot de passe stocké en base.
+// 💻 Expérience fluide : l’utilisateur clique → empreinte digitale / FaceID / clé FIDO → connexion directe.
+// 📱 Interopérable : fonctionne sur mobile et desktop, avec synchronisation iCloud Keychain, Google Password Manager, etc.
+
 // 3. Typologie des prestataires Techniques : dev front (React/TS), back (Quarkus), DevOps (Proxmox, Debian, IaC). Fonctionnels : CRM, facturation, intégration marketplace. Support / Relation client : assistance, formation, suivi qualité. Juridique : gestion contrats, cession de droits, conformité RGPD.
 
 // 4. Pré-sélection d’outils Paiement / Abonnements : GoCardless, SlimPay. Comptabilité : GnuCash (open source) ou équivalent SaaS. CRM : HubSpot (cloud), Dolibarr (open source), ou déeloppement interne connecté à la BDD. Infra : Proxmox (VM), PostgreSQL (BDD), Debian (OS). Sécurité : FIDO2 (auth forte), OTP SMS (signature).

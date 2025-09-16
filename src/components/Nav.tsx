@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   AppBar,
@@ -36,10 +36,23 @@ const links = [
 
 export function Nav() {
   const [value, setValue] = useState(0);
+  const [isAuth, setIsAuth] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        setIsAuth(res.ok);
+      } catch {
+        setIsAuth(false);
+      }
+    };
+    checkAuth();
+  }, []);
 
   return (
     <>
-      {/* Desktop (>= lg) */}
+      {/* Desktop */}
       <AppBar position="static" sx={{ display: { xs: "none", lg: "block" } }}>
         <Toolbar>
           <Box
@@ -50,7 +63,7 @@ export function Nav() {
               alt="Logo"
               width={42}
               height={42}
-              border-radius={4}
+              style={{ borderRadius: 4 }}
             />
             <Typography
               variant="h6"
@@ -69,21 +82,27 @@ export function Nav() {
           </Box>
 
           <Box sx={{ display: "flex", gap: 1 }}>
-            {links.map((link) => (
-              <Button
-                key={link.href}
-                color="inherit"
-                component={Link}
-                href={link.href}
-              >
-                {link.label}
-              </Button>
-            ))}
+            {isAuth ? (
+              links.map((link) => (
+                <Button
+                  key={link.href}
+                  color="inherit"
+                  component={Link}
+                  href={link.href}
+                >
+                  {link.label}
+                </Button>
+              ))
+            ) : (
+              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.7)" }}>
+                Authentification requise
+              </Typography>
+            )}
           </Box>
         </Toolbar>
       </AppBar>
 
-      {/* Mobile (< lg) */}
+      {/* Mobile */}
       <Paper
         sx={{
           position: "fixed",
@@ -92,30 +111,34 @@ export function Nav() {
           right: 0,
           display: { xs: "block", lg: "none" },
           zIndex: 1200,
-          height: "auto", // ✅ prend la hauteur de son contenu
         }}
         elevation={3}
       >
-        <BottomNavigation
-          showLabels
-          value={value}
-          onChange={(_, newValue) => setValue(newValue)}
-          sx={{
-            flexWrap: "wrap",
-            height: "auto", // ✅ même chose ici
-          }}
-        >
-          {links.map((link) => (
-            <BottomNavigationAction
-              key={link.href}
-              label={link.label}
-              icon={link.icon}
-              component={Link}
-              href={link.href}
-              sx={{ flex: "1 0 33%", py: 0.5, pt: 0.5, pb: 3 }}
-            />
-          ))}
-        </BottomNavigation>
+        {isAuth ? (
+          <BottomNavigation
+            showLabels
+            value={value}
+            onChange={(_, newValue) => setValue(newValue)}
+            sx={{ flexWrap: "wrap", height: "auto" }}
+          >
+            {links.map((link) => (
+              <BottomNavigationAction
+                key={link.href}
+                label={link.label}
+                icon={link.icon}
+                component={Link}
+                href={link.href}
+                sx={{ flex: "1 0 33%", py: 0.5, pt: 0.5, pb: 3 }}
+              />
+            ))}
+          </BottomNavigation>
+        ) : (
+          <Box sx={{ p: 2, textAlign: "center" }}>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              Authentification requise
+            </Typography>
+          </Box>
+        )}
       </Paper>
     </>
   );

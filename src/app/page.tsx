@@ -7,8 +7,11 @@ import {
   Paper,
   CircularProgress,
   Stack,
+  Box,
+  Button,
 } from "@mui/material";
 import { Nav } from "@/components/Nav";
+import Image from "next/image";
 
 type DashboardData = {
   clients: number;
@@ -22,6 +25,16 @@ type DashboardData = {
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuth, setIsAuth] = useState<boolean | null>(null);
+
+  const checkAuth = async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+      setIsAuth(res.ok);
+    } catch {
+      setIsAuth(false);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -37,148 +50,97 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    load();
+    checkAuth();
   }, []);
+
+  useEffect(() => {
+    if (isAuth) load();
+  }, [isAuth]);
 
   return (
     <>
+      {/* ✅ La Nav est toujours visible */}
       <Nav />
+
       <Container sx={{ py: 4 }}>
         <Typography variant="h4" gutterBottom>
           Tableau de bord
         </Typography>
 
-        <Grid container spacing={2}>
-          {/* Contrats */}
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6">Contrats</Typography>
-              {loading ? (
-                <Stack alignItems="center" sx={{ py: 2 }}>
-                  <CircularProgress size={24} />
-                </Stack>
-              ) : (
-                <>
-                  <Typography>
-                    Brouillons : — {/* à détailler plus tard */}
-                  </Typography>
+        {/* Cas 1 : pas connecté */}
+        {isAuth === false && (
+          <Stack alignItems="center" spacing={4} sx={{ py: 4 }}>
+            <Typography variant="h6">
+              Vous devez vous connecter pour accéder aux données.
+            </Typography>
+            <Button variant="contained" href="/login">
+              Aller à la page de connexion
+            </Button>
+
+            <Image
+              src="/assets/cc-draft-logo.jpg"
+              alt="Logo"
+              width={350}
+              height={350}
+              style={{ borderRadius: 4 }}
+            />
+          </Stack>
+        )}
+
+        {/* Cas 2 : en cours de vérification */}
+        {isAuth === null && (
+          <Stack alignItems="center" sx={{ py: 4 }}>
+            <CircularProgress size={32} />
+          </Stack>
+        )}
+
+        {/* Cas 3 : connecté → afficher données */}
+        {isAuth && !loading && (
+          <>
+            <Grid container spacing={2}>
+              {/* Contrats */}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 2 }}>
+                  <Typography variant="h6">Contrats</Typography>
                   <Typography>Actifs : {data?.contrats}</Typography>
-                  <Typography>Susp. : —</Typography>
-                  <Typography>Clos : —</Typography>
-                </>
-              )}
-            </Paper>
-          </Grid>
+                </Paper>
+              </Grid>
 
-          {/* Factures */}
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6">Factures</Typography>
-              {loading ? (
-                <Stack alignItems="center" sx={{ py: 2 }}>
-                  <CircularProgress size={24} />
-                </Stack>
-              ) : (
-                <>
-                  <Typography>En attente : —</Typography>
+              {/* Factures */}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 2 }}>
+                  <Typography variant="h6">Factures</Typography>
                   <Typography>Payées : {data?.factures}</Typography>
-                  <Typography>En retard : —</Typography>
-                  <Typography>Annulées : —</Typography>
-                </>
-              )}
-            </Paper>
-          </Grid>
+                </Paper>
+              </Grid>
 
-          {/* Paiements */}
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6">Paiements</Typography>
-              {loading ? (
-                <Stack alignItems="center" sx={{ py: 2 }}>
-                  <CircularProgress size={24} />
-                </Stack>
-              ) : (
-                <>
-                  <Typography>Mandats : —</Typography>
-                  <Typography>Prélèvements : —</Typography>
-                  <Typography>Échecs : —</Typography>
-                  <Typography>Webhooks actifs : —</Typography>
-                </>
-              )}
-            </Paper>
-          </Grid>
-
-          {/* Clients */}
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6">Clients</Typography>
-              {loading ? (
-                <Stack alignItems="center" sx={{ py: 2 }}>
-                  <CircularProgress size={24} />
-                </Stack>
-              ) : (
-                <>
+              {/* Clients */}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 2 }}>
+                  <Typography variant="h6">Clients</Typography>
                   <Typography>Total : {data?.clients}</Typography>
-                  <Typography>Nouveaux ce mois : —</Typography>
-                  <Typography>Secteur BTP : —</Typography>
-                  <Typography>Secteur Santé : —</Typography>
-                </>
-              )}
-            </Paper>
-          </Grid>
+                </Paper>
+              </Grid>
+            </Grid>
 
-          {/* Collaborateurs */}
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6">Collaborateurs</Typography>
-              {loading ? (
-                <Stack alignItems="center" sx={{ py: 2 }}>
-                  <CircularProgress size={24} />
-                </Stack>
-              ) : (
-                <>
-                  <Typography>Actifs : {data?.collaborateurs}</Typography>
-                  <Typography>
-                    Rôles : chef de projet, support, commercial
-                  </Typography>
-                </>
-              )}
+            {/* Dernières activités */}
+            <Paper sx={{ p: 2, mt: 3 }}>
+              <Typography variant="h6">Dernières activités</Typography>
+              <ul>
+                {data?.activites.map((a, i) => (
+                  <li key={i}>{a}</li>
+                ))}
+              </ul>
             </Paper>
-          </Grid>
+          </>
+        )}
 
-          {/* Prestataires */}
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6">Prestataires</Typography>
-              {loading ? (
-                <Stack alignItems="center" sx={{ py: 2 }}>
-                  <CircularProgress size={24} />
-                </Stack>
-              ) : (
-                <>
-                  <Typography>Actifs : {data?.prestataires}</Typography>
-                  <Typography>Types : dev front, dev back, sécurité</Typography>
-                </>
-              )}
-            </Paper>
-          </Grid>
-        </Grid>
-
-        {/* Dernières activités */}
-        <Paper sx={{ p: 2, mt: 3 }}>
-          <Typography variant="h6">Dernières activités</Typography>
-          {loading ? (
-            <Stack alignItems="center" sx={{ py: 2 }}>
-              <CircularProgress size={24} />
-            </Stack>
-          ) : (
-            <ul>
-              {data?.activites.map((a, i) => (
-                <li key={i}>{a}</li>
-              ))}
-            </ul>
-          )}
-        </Paper>
+        {/* Loader si connecté mais data en cours */}
+        {isAuth && loading && (
+          <Stack alignItems="center" sx={{ py: 4 }}>
+            <CircularProgress size={32} />
+          </Stack>
+        )}
       </Container>
     </>
   );

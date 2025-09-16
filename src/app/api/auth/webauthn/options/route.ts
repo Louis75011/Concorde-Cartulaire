@@ -1,9 +1,16 @@
-import { NextResponse } from 'next/server';
-import { authOptions } from '@/lib/auth/webauthn';
-import { setChallenge } from '@/lib/auth/challengeStore';
+import { NextResponse } from "next/server";
+import { generateAuthenticationOptions } from "@simplewebauthn/server";
+import { cookies } from "next/headers";
 
 export async function POST() {
-  const opts = await authOptions();
-  setChallenge(opts.challenge);
-  return NextResponse.json({ options: opts });
+  const options = await generateAuthenticationOptions({
+    rpID: process.env.WEBAUTHN_RP_ID!,
+    userVerification: "preferred",
+  });
+
+  (await cookies()).set("webauthn_auth_chal", options.challenge, {
+    httpOnly: true, sameSite: "strict", path: "/", maxAge: 300,
+  });
+
+  return NextResponse.json({ options });
 }

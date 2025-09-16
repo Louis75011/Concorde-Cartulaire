@@ -113,8 +113,8 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   collaborator_id: integer("collaborator_id").references(() => collaborateurs.id, { onDelete: "set null" }),
   email: text("email").notNull().unique(),
-  password_hash: text("password_hash"),
-  // passkeys only or password+TOTP hybrid
+  password_hash: text("password_hash"), // passkeys only or password+TOTP hybrid
+  // password: varchar("password", { length: 255 }).notNull(),
   created_at: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 

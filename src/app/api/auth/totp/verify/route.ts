@@ -13,11 +13,19 @@ export async function POST(req: NextRequest) {
   if (!session) return new NextResponse('Unauthorized', { status: 401 });
 
   const { token } = await req.json();
-  const rows = await db.select().from(user_totp).where(eq(user_totp.user_id, session.uid)).orderBy(desc(user_totp.id)).limit(1);
+  const rows = await db
+    .select()
+    .from(user_totp)
+    .where(eq(user_totp.user_id, session.uid))
+    .orderBy(desc(user_totp.id))
+    .limit(1);
+
   if (!rows.length) return new NextResponse('No TOTP', { status: 404 });
+
   const secret = unseal(rows[0].secret_enc);
   const ok = authenticator.check(token, secret);
   if (!ok) return new NextResponse('Invalid TOTP', { status: 400 });
+
   await db.update(user_totp).set({ enabled: true }).where(eq(user_totp.id, rows[0].id));
   return NextResponse.json({ ok: true });
 }
