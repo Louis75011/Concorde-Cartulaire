@@ -15,6 +15,8 @@ const toB64Url = (buf: ArrayBuffer | Uint8Array) =>
 export async function POST(req: Request) {
   const body = (await req.json()) as RegistrationResponseJSON;
 
+//   const jar = cookies(); // ATTENTION COOKIES OU GETCOOKIES IONTROUVABLES EN SOI LES DEUX SONT INSTALLES
+// const session = jar.get("gc_session")?.value;
   const jar = await getCookies();
   const uid = jar.get("webauthn_reg_uid")?.value;
   if (!uid) return NextResponse.json({ error: "no uid cookie" }, { status: 400 });
