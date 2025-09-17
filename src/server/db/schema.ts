@@ -1,3 +1,4 @@
+// src\server\db\schema.ts
 import {
   pgTable,
   serial,

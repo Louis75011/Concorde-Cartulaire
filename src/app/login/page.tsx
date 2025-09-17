@@ -1,3 +1,4 @@
+// src\app\login\page.tsx
 "use client";
 import { useState, useEffect } from "react";
 // import { useRouter } from "next/navigation";
@@ -11,78 +12,47 @@ import {
 } from "@mui/material";
 import * as SimpleWebAuthnBrowser from "@simplewebauthn/browser";
 import { Nav } from "@/components/Nav";
+import { startRegistration } from "@simplewebauthn/browser";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [platformOK, setPlatformOK] = useState<boolean | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
-  // const [password, setPassword] = useState("");
-  // const [error, setError] = useState("");
-  // const router = useRouter();
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setError("");
-  //   try {
-  //     const res = await fetch("/api/auth/login", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ email, password }),
-  //     });
-  //     if (!res.ok) {
-  //       const { error } = await res.json();
-  //       setError(error || "Erreur de connexion");
-  //       return;
-  //     }
-  //     router.push("/"); // redirige vers tableau de bord
-  //   } catch (err) {
-  //     setError("Erreur réseau");
-  //   }
-  // };
-
-  async function registerPasskey() {
-    setMsg(null);
+  async function onCreatePasskey() {
     if (!email) {
       alert("Indiquez un email.");
       return;
     }
 
-    // 1) Demander les options d’inscription au serveur
-    const r1 = await fetch("/api/auth/webauthn/register/options", {
+    // 1) start → reçoit les options + pose le cookie uid
+    const r = await fetch("/api/webauthn/registration/start", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({ email, displayName }),
     });
-
-    if (!r1.ok) {
-      const text = await r1.text();
-      console.error("register/options failed:", text);
-      alert("Erreur serveur à l’inscription (voir console)");
+    if (!r.ok) {
+      alert("Erreur serveur /start");
       return;
     }
+    const opts = await r.json();
 
-    // 2) Ajouter des hints pour favoriser le téléphone (QR / caBLE)
-    const { options: regOpts } = await r1.json();
-    (regOpts as any).hints = ["client-device", "hybrid", "security-key"]; // ignoré par Firefox, utile sur Chrome/Edge
+    // 2) création côté navigateur
+    const attResp = await startRegistration(opts);
 
-    // 3) Lancer l’enregistrement WebAuthn dans le navigateur
-    const att = await SimpleWebAuthnBrowser.startRegistration(regOpts);
-
-    // 4) Vérification côté serveur
-    const r2 = await fetch("/api/auth/webauthn/register/verify", {
+    // 3) finish → vérifie et enregistre la passkey
+    const r2 = await fetch("/api/webauthn/registration/finish", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(att),
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(attResp),
     });
-
     if (!r2.ok) {
-      const text = await r2.text();
-      console.error("register/verify failed:", text);
-      alert("Échec de l’enregistrement");
+      alert("Échec /finish");
       return;
     }
 
+    // Succès
     window.location.href = "/";
   }
 
@@ -167,7 +137,7 @@ export default function LoginPage() {
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
           />
-          <Button variant="outlined" onClick={registerPasskey}>
+          <Button variant="outlined" onClick={onCreatePasskey}>
             Créer une Passkey
           </Button>
         </Stack>
@@ -180,36 +150,6 @@ export default function LoginPage() {
 
         {msg && <Typography sx={{ mt: 2 }}>{msg}</Typography>}
       </Container>
-
-      {/* <div className="flex items-center justify-center min-h-screen">
-        <form
-          onSubmit={handleSubmit}
-          className="p-6 bg-white shadow-md rounded"
-        >
-          <h1 className="text-xl font-bold mb-4">Connexion</h1>
-          {error && <p className="text-red-500">{error}</p>}
-          <input
-            type="email"
-            placeholder="Email"
-            className="border p-2 mb-2 w-full"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Mot de passe"
-            className="border p-2 mb-2 w-full"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded w-full"
-          >
-            Se connecter
-          </button>
-        </form>
-      </div> */}
     </>
   );
 }
