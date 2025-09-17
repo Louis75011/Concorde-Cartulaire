@@ -12,7 +12,10 @@ import {
 } from "@mui/material";
 import * as SimpleWebAuthnBrowser from "@simplewebauthn/browser";
 import { Nav } from "@/components/Nav";
-import { startRegistration } from "@simplewebauthn/browser";
+import {
+  startRegistration,
+  startAuthentication,
+} from "@simplewebauthn/browser";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -21,74 +24,41 @@ export default function LoginPage() {
   const [msg, setMsg] = useState<string | null>(null);
 
   async function onCreatePasskey() {
-    if (!email) {
-      alert("Indiquez un email.");
-      return;
-    }
-
-    // 1) start → reçoit les options + pose le cookie uid
+    if (!email) return alert("Indiquez un email.");
     const r = await fetch("/api/webauthn/registration/start", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ email, displayName }),
     });
-    if (!r.ok) {
-      alert("Erreur serveur /start");
-      return;
-    }
+    if (!r.ok) return alert("Erreur serveur /start");
     const opts = await r.json();
-
-    // 2) création côté navigateur
     const attResp = await startRegistration(opts);
-
-    // 3) finish → vérifie et enregistre la passkey
     const r2 = await fetch("/api/webauthn/registration/finish", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(attResp),
     });
-    if (!r2.ok) {
-      alert("Échec /finish");
-      return;
-    }
-
-    // Succès
+    if (!r2.ok) return alert("Échec /finish");
     window.location.href = "/";
   }
 
-  async function startLogin() {
-    setMsg(null);
-
-    // 1) Demander les options d’authentification
-    const r1 = await fetch("/api/auth/webauthn/options", { method: "POST" });
-    if (!r1.ok) {
-      const text = await r1.text();
-      console.error("auth/options failed:", text);
-      alert("Erreur serveur à la connexion (voir console)");
-      return;
-    }
-
-    // 2) Hints pour pousser le téléphone
-    const { options: authOpts } = await r1.json();
-    (authOpts as any).hints = ["client-device", "hybrid"]; // ignoré par Firefox, utile sur Chrome/Edge
-
-    // 3) Lancer l’auth dans le navigateur
-    const assertion = await SimpleWebAuthnBrowser.startAuthentication(authOpts);
-
-    // 4) Vérification côté serveur
-    const r2 = await fetch("/api/auth/webauthn/verify", {
+  // Connexion passkey
+  async function onLogin() {
+    if (!email) return alert("Indiquez un email.");
+    const r = await fetch("/api/webauthn/authentication/start", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (!r.ok) return alert("Erreur serveur /authentication/start");
+    const opts = await r.json();
+    const assertion = await startAuthentication(opts);
+    const r2 = await fetch("/api/webauthn/authentication/finish", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify(assertion),
     });
-
-    if (!r2.ok) {
-      const text = await r2.text();
-      console.error("auth/verify failed:", text);
-      alert("Échec de la connexion Passkey");
-      return;
-    }
-
+    if (!r2.ok) return alert("Échec /authentication/finish");
     window.location.href = "/";
   }
 
@@ -143,7 +113,7 @@ export default function LoginPage() {
         </Stack>
 
         <Stack spacing={2}>
-          <Button variant="contained" onClick={startLogin}>
+          <Button variant="contained" onClick={onLogin}>
             Se connecter par Passkey
           </Button>
         </Stack>
