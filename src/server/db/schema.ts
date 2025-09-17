@@ -1,9 +1,18 @@
 import {
-  pgTable, serial, integer, varchar, text, timestamp, numeric, boolean, jsonb, uniqueIndex
+  pgTable,
+  serial,
+  integer,
+  varchar,
+  text,
+  timestamp,
+  numeric,
+  boolean,
+  jsonb,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 // import { users } from "./users";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
@@ -32,9 +41,11 @@ export const factures = pgTable("factures", {
   date_echeance: timestamp("date_echeance"),
   date_paiement: timestamp("date_paiement"),
   montant_ht: numeric("montant_ht", { precision: 12, scale: 2 }).notNull(),
-  tva: numeric("tva", { precision: 5, scale: 2 }).default('20.00').notNull(),
+  tva: numeric("tva", { precision: 5, scale: 2 }).default("20.00").notNull(),
   montant_ttc: numeric("montant_ttc", { precision: 12, scale: 2 }).notNull(),
-  statut_paiement: varchar("statut_paiement", { length: 32 }).default('draft').notNull(),
+  statut_paiement: varchar("statut_paiement", { length: 32 })
+    .default("draft")
+    .notNull(),
 });
 
 /** ---------- Prestataires ---------- */
@@ -79,7 +90,7 @@ export const prelevements = pgTable("prelevements", {
   provider_id: integer("provider_id").notNull(),
   montant: numeric("montant", { precision: 12, scale: 2 }).notNull(),
   devise: text("devise").default("EUR").notNull(),
-  statut: varchar("statut", { length: 32 }).default('created').notNull(),
+  statut: varchar("statut", { length: 32 }).default("created").notNull(),
   provider_event_id: text("provider_event_id"),
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
@@ -96,16 +107,24 @@ export const users = pgTable("users", {
 });
 
 /** TABLE credentials – on stocke en base64url (string) */
-export const credentials = pgTable("credentials", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  credentialID: text("credential_id").notNull().unique(), // base64url
-  publicKey: text("public_key").notNull(),                 // base64url
-  counter: integer("counter").default(0).notNull(),
-  created_at: timestamp("created_at").defaultNow().notNull(),
-}, (t) => ({
-  credIdUnique: uniqueIndex("credentials_credential_id_uq").on(t.credentialID),
-}));
+export const credentials = pgTable(
+  "credentials",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id),
+    credentialID: text("credential_id").notNull().unique(), // base64url
+    publicKey: text("public_key").notNull(), // base64url
+    counter: integer("counter").default(0).notNull(),
+    created_at: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    credIdUnique: uniqueIndex("credentials_credential_id_uq").on(
+      t.credentialID
+    ),
+  })
+);
 
 export const user_passkeys = pgTable("user_passkeys", {
   id: serial("id").primaryKey(),
@@ -132,4 +151,31 @@ export const auth_challenges = pgTable("auth_challenges", {
   challenge: varchar("challenge", { length: 255 }).notNull(),
   expires_at: timestamp("expires_at").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const documents = pgTable("documents", {
+  id: serial("id").primaryKey(),
+  client_id: integer("client_id").references(() => clients.id, {
+    onDelete: "set null",
+  }),
+  url: text("url").notNull(),
+  title: text("title"),
+  kind: text("kind")
+    .$type<"contrat" | "facture" | "autre">()
+    .default("autre")
+    .notNull(),
+});
+
+export const sign_requests = pgTable("sign_requests", {
+  id: serial("id").primaryKey(),
+  document_id: integer("document_id")
+    .notNull()
+    .references(() => documents.id, { onDelete: "cascade" }),
+  provider: text("provider").default("docuseal").notNull(),
+  external_id: text("external_id").notNull(),
+  statut: text("statut")
+    .$type<"created" | "sent" | "completed" | "declined" | "error">()
+    .default("created")
+    .notNull(),
+  created_at: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });

@@ -27,7 +27,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded"; // ✚ croix
 import Image from "next/image";
 
-const links = [
+const linksMobile = [
   { href: "/", label: "Tableau", icon: <DashboardIcon /> },
   { href: "/clients", label: "Clients", icon: <PeopleIcon /> },
   { href: "/contrats", label: "Contrats", icon: <AssignmentIcon /> },
@@ -38,6 +38,8 @@ const links = [
   { href: "/signatures", label: "Signatures", icon: <EditNoteIcon /> },
   { href: "/settings", label: "Paramètres", icon: <SettingsIcon /> },
 ];
+
+const linksDesktop = linksMobile.filter((l) => l.href !== "/");
 
 export function Nav() {
   const [value, setValue] = useState(0);
@@ -73,37 +75,61 @@ export function Nav() {
       {/* Desktop */}
       <AppBar position="static" sx={{ display: { xs: "none", lg: "block" } }}>
         <Toolbar>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexGrow: 1 }}>
-            <Image
-              src="/assets/cc-draft-logo.jpg"
-              alt="Logo"
-              width={42}
-              height={42}
-              style={{ borderRadius: 4 }}
-            />
-            <Typography variant="h6" sx={{ fontSize: "1.1rem", fontWeight: 600, lineHeight: 1 }}>
-              Concorde
-              <br />
-              Cartulaire
-            </Typography>
-            <Typography variant="subtitle2" sx={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.7)" }}>
-              (draft)
-            </Typography>
+          <Box
+            sx={{ display: "flex", alignItems: "center", gap: 1, flexGrow: 1 }}
+          >
+            <Link
+              href="/"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                textDecoration: "none",
+                color: "inherit",
+              }}
+            >
+              <Image
+                src="/assets/cc-draft-logo.jpg"
+                alt="Logo"
+                width={42}
+                height={42}
+                style={{ borderRadius: 4 }}
+              />
+              <Box sx={{ ml: 1 }}>
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1.1rem", fontWeight: 600, lineHeight: 1 }}
+                >
+                  Concorde
+                  <br />
+                  Cartulaire
+                </Typography>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.7)" }}
+                >
+                  (draft)
+                </Typography>
+              </Box>
+            </Link>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {isAuth ? (
               <>
-                {links.map((link) => (
-                  <Button key={link.href} color="inherit" component={Link} href={link.href}>
+                {linksDesktop.map((link) => (
+                  <Button
+                    key={link.href}
+                    color="inherit"
+                    component={Link}
+                    href={link.href}
+                  >
                     {link.label}
                   </Button>
                 ))}
-                {/* ✚ icône croix = Déconnexion */}
+                {/* Déconnexion */}
                 <Tooltip title="Se déconnecter">
                   <span>
                     <IconButton
-                      aria-label="Déconnexion"
                       onClick={logout}
                       disabled={loggingOut}
                       sx={{ ml: 0.5, color: "inherit" }}
@@ -114,7 +140,10 @@ export function Nav() {
                 </Tooltip>
               </>
             ) : (
-              <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.7)" }}>
+              <Typography
+                variant="body2"
+                sx={{ color: "rgba(255,255,255,0.7)" }}
+              >
                 Authentification requise
               </Typography>
             )}
@@ -141,7 +170,7 @@ export function Nav() {
             onChange={(_, newValue) => setValue(newValue)}
             sx={{ flexWrap: "wrap", height: "auto" }}
           >
-            {links.map((link) => (
+            {linksMobile.map((link) => (
               <BottomNavigationAction
                 key={link.href}
                 label={link.label}

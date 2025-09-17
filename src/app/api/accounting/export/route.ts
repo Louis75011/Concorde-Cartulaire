@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from "@/server/db/client";
-import { factures, contrats, clients } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { factures, contrats, clients } from "@/server/db/schema";
+// import { eq } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 

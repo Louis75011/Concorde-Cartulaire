@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from "@/server/db/client";
-import { sign_requests, documents } from '@/db/schema';
+import { sign_requests, documents } from "@/server/db/schema";
 import { eq } from 'drizzle-orm';
 
 export async function POST(req: NextRequest) {

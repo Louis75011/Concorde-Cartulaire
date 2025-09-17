@@ -3,8 +3,8 @@ import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
 import { seal } from '@/lib/crypto';
 import { db } from "@/server/db/client";
-import { user_totp } from '@/db/schema';
 import { getSession } from '@/lib/session';
+// import { user_totp } from "@/server/db/schema";
 
 export const runtime = 'nodejs';
 

@@ -1,7 +1,7 @@
 import { Container, Typography, Grid, Paper } from '@mui/material';
 import { Nav } from '@/components/Nav';
 import { db } from "@/server/db/client";
-import { sign_requests, documents } from '@/db/schema';
+import { sign_requests, documents } from "@/server/db/schema";
 
 export const dynamic = 'force-dynamic';
 

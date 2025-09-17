@@ -5,7 +5,7 @@ import {
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
 import { db } from "@/server/db/client";
-import { users, user_passkeys } from "@/db/schema";
+import { users, user_passkeys } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
 export const runtime = 'nodejs';

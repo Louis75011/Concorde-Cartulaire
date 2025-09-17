@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticator } from 'otplib';
 import { db } from "@/server/db/client";
-import { user_totp } from '@/db/schema';
+import { user_totp } from "@/server/db/schema";
 import { eq, desc } from 'drizzle-orm';
 import { unseal } from '@/lib/crypto';
 import { getSession } from '@/lib/session';

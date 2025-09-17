@@ -1,7 +1,7 @@
 import { Container, Typography, Grid, Paper } from '@mui/material';
 import { Nav } from '@/components/Nav';
 import { db } from "@/server/db/client";
-import { prelevements } from '@/db/schema';
+import { prelevements } from "@/server/db/schema";
 
 export const dynamic = 'force-dynamic';
 

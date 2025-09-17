@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { db } from "@/server/db/client";
-import { prelevements } from '@/db/schema';
+import { prelevements } from "@/server/db/schema";
 import { eq } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
