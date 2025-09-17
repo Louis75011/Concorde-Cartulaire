@@ -1,6 +1,6 @@
 // src/app/api/payments/gc/redirect/start/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import crypto from "node:crypto";
 import { db } from "@/server/db/client";
 import { factures } from "@/server/db/schema";
@@ -13,15 +13,10 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const invoiceId = url.searchParams.get("invoice_id");
-  const clientEmail =
-    url.searchParams.get("client_email") || "demo@example.com";
+  const clientEmail = url.searchParams.get("client_email") || "demo@example.com";
   const clientNom = url.searchParams.get("client_nom") || "Client Demo";
+  if (!invoiceId) return NextResponse.json({ error: "invoice_id manquant" }, { status: 400 });
 
-  if (!invoiceId) {
-    return NextResponse.json({ error: "invoice_id manquant" }, { status: 400 });
-  }
-
-  // ✅ headers() est synchrone
   const h = headers();
   // @ts-ignore
   const proto = h.get("x-forwarded-proto") || "http";
@@ -29,16 +24,8 @@ export async function GET(req: NextRequest) {
   const host = h.get("host") || "localhost:3000";
   const base = `${proto}://${host}`;
 
-  const inv = (
-    await db
-      .select()
-      .from(factures)
-      .where(eq(factures.id, Number(invoiceId)))
-      .limit(1)
-  )[0];
-  if (!inv) {
-    return NextResponse.json({ error: "Facture introuvable" }, { status: 404 });
-  }
+  const inv = (await db.select().from(factures).where(eq(factures.id, Number(invoiceId))).limit(1))[0];
+  if (!inv) return NextResponse.json({ error: "Facture introuvable" }, { status: 404 });
 
   const sessionToken = crypto.randomUUID();
   const successUrl = `${base}/api/payments/gc/redirect/complete?invoice_id=${invoiceId}`;
@@ -53,31 +40,18 @@ export async function GET(req: NextRequest) {
       },
     };
 
-    const flow = await gcFetch<{
-      redirect_flows: { id: string; redirect_url: string };
-    }>("/redirect_flows", {
-      method: "POST",
-      body: JSON.stringify(payload),
-      idempotencyKey: crypto.randomUUID(),
-    });
+    const flow = await gcFetch<{ redirect_flows: { id: string; redirect_url: string } }>(
+      "/redirect_flows",
+      { method: "POST", body: JSON.stringify(payload), idempotencyKey: crypto.randomUUID() }
+    );
 
-    // ✅ cookies() est synchrone
-    const jar = cookies();
-    // @ts-ignore (TS croit que ce n’est pas modifiable)
-    jar.set("gc_session", sessionToken, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 10 * 60,
-      secure: proto === "https",
+    const res = NextResponse.redirect(flow.redirect_flows.redirect_url);
+    res.cookies.set("gc_session", sessionToken, {
+      httpOnly: true, sameSite: "lax", path: "/", maxAge: 10 * 60, secure: proto === "https",
     });
-
-    return NextResponse.redirect(flow.redirect_flows.redirect_url);
+    return res;
   } catch (e: any) {
     console.error("[GC redirect start] fail:", e?.status, e?.body || e);
-    return NextResponse.json(
-      { ok: false, error: "gc_create_failed", details: e?.body || String(e) },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: false, error: "gc_create_failed", details: e?.body || String(e) }, { status: 500 });
   }
 }

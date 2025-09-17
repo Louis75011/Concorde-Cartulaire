@@ -25,41 +25,111 @@ export default function LoginPage() {
 
   async function onCreatePasskey() {
     if (!email) return alert("Indiquez un email.");
-    const r = await fetch("/api/webauthn/registration/start", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email, displayName }),
-    });
-    if (!r.ok) return alert("Erreur serveur /start");
-    const opts = await r.json();
-    const attResp = await startRegistration(opts);
-    const r2 = await fetch("/api/webauthn/registration/finish", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(attResp),
-    });
-    if (!r2.ok) return alert("Échec /finish");
-    window.location.href = "/";
+
+    try {
+      // 1) Demander les options
+      const r = await fetch("/api/webauthn/registration/start", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, displayName }),
+      });
+
+      if (!r.ok) {
+        const msg = await r.text().catch(() => "");
+        console.error("registration/start error:", msg);
+        return alert(`/registration/start: ${msg || r.statusText}`);
+      }
+
+      // 2) Lancer la création dans le navigateur
+      const opts = await r.json();
+      const creationOpts =
+        // au cas où le backend renverrait {options: ...}
+        (opts && (opts.options ?? opts)) || opts;
+
+      let attResp;
+      try {
+        attResp = await startRegistration(creationOpts);
+      } catch (err: any) {
+        // Erreur typique si l’utilisateur annule / pas de clé dispo
+        if (err?.name === "NotAllowedError") {
+          return alert("Opération annulée (NotAllowedError).");
+        }
+        console.error("startRegistration failed:", err);
+        return alert(`WebAuthn create() a échoué: ${err?.message || err}`);
+      }
+
+      // 3) Vérifier côté serveur
+      const r2 = await fetch("/api/webauthn/registration/finish", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(attResp),
+      });
+
+      if (!r2.ok) {
+        const msg = await r2.text().catch(() => "");
+        console.error("registration/finish error:", msg);
+        return alert(`/registration/finish: ${msg || r2.statusText}`);
+      }
+
+      window.location.href = "/";
+    } catch (err: any) {
+      console.error("onCreatePasskey fatal:", err);
+      alert(`Erreur inattendue: ${err?.message || err}`);
+    }
   }
 
-  // Connexion passkey
   async function onLogin() {
     if (!email) return alert("Indiquez un email.");
-    const r = await fetch("/api/webauthn/authentication/start", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    if (!r.ok) return alert("Erreur serveur /authentication/start");
-    const opts = await r.json();
-    const assertion = await startAuthentication(opts);
-    const r2 = await fetch("/api/webauthn/authentication/finish", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(assertion),
-    });
-    if (!r2.ok) return alert("Échec /authentication/finish");
-    window.location.href = "/";
+
+    try {
+      // 1) Demander les options
+      const r = await fetch("/api/webauthn/authentication/start", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!r.ok) {
+        const msg = await r.text().catch(() => "");
+        console.error("authentication/start error:", msg);
+        return alert(`/authentication/start: ${msg || r.statusText}`);
+      }
+
+      const opts = await r.json();
+      const requestOpts = (opts && (opts.options ?? opts)) || opts;
+
+      // 2) Lancer l’auth navigateur
+      let assertion;
+      try {
+        // petit bonus: hints pour pousser l’usage mobile/caBLE si supportés
+        (requestOpts as any).hints = ["client-device", "hybrid"];
+        assertion = await startAuthentication(requestOpts);
+      } catch (err: any) {
+        if (err?.name === "NotAllowedError") {
+          return alert("Opération annulée (NotAllowedError).");
+        }
+        console.error("startAuthentication failed:", err);
+        return alert(`WebAuthn get() a échoué: ${err?.message || err}`);
+      }
+
+      // 3) Vérifier côté serveur
+      const r2 = await fetch("/api/webauthn/authentication/finish", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(assertion),
+      });
+
+      if (!r2.ok) {
+        const msg = await r2.text().catch(() => "");
+        console.error("authentication/finish error:", msg);
+        return alert(`/authentication/finish: ${msg || r2.statusText}`);
+      }
+
+      window.location.href = "/";
+    } catch (err: any) {
+      console.error("onLogin fatal:", err);
+      alert(`Erreur inattendue: ${err?.message || err}`);
+    }
   }
 
   useEffect(() => {

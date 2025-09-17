@@ -1,6 +1,5 @@
 // src/app/api/webauthn/registration/start/route.ts
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { generateRegistrationOptions } from "@simplewebauthn/server";
 import { db } from "@/server/db/client";
 import { auth_challenges, user_passkeys, users } from "@/server/db/schema";
@@ -14,54 +13,35 @@ type Body = { email: string; displayName?: string };
 function needEnv() {
   const rpID = process.env.WEBAUTHN_RP_ID!;
   const origin = process.env.WEBAUTHN_ORIGIN!;
-  if (!rpID || !origin) {
-    throw new Error("WEBAUTHN_RP_ID/WEBAUTHN_ORIGIN manquants");
-  }
+  if (!rpID || !origin) throw new Error("WEBAUTHN_RP_ID/WEBAUTHN_ORIGIN manquants");
   return { rpID, origin };
 }
 
 export async function POST(req: Request) {
   try {
     const { email, displayName }: Body = await req.json();
-    if (!email) {
-      return NextResponse.json({ error: "email requis" }, { status: 400 });
-    }
-
+    if (!email) return NextResponse.json({ error: "email requis" }, { status: 400 });
     const { rpID } = needEnv();
 
     // 1) upsert utilisateur
-    let [u] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
-
+    let [u] = await db.select().from(users).where(eq(users.email, email)).limit(1);
     if (!u) {
-      const ins = await db
-        .insert(users)
-        .values({
-          email,
-          display_name: displayName || email.split("@")[0],
-        })
-        .returning();
+      const ins = await db.insert(users).values({
+        email,
+        display_name: displayName || email.split("@")[0],
+      }).returning();
       u = ins[0];
     }
 
     // 2) handle stable
     if (!u.webauthn_user_id) {
       const handle = Buffer.from(randomBytes(16)).toString("base64url");
-      await db
-        .update(users)
-        .set({ webauthn_user_id: handle })
-        .where(eq(users.id, u.id));
+      await db.update(users).set({ webauthn_user_id: handle }).where(eq(users.id, u.id));
       u.webauthn_user_id = handle as any;
     }
 
-    // 3) exclude creds
-    const existing = await db
-      .select()
-      .from(user_passkeys)
-      .where(eq(user_passkeys.user_id, u.id));
+    // 3) exclude credentials
+    const existing = await db.select().from(user_passkeys).where(eq(user_passkeys.user_id, u.id));
 
     const opts = await generateRegistrationOptions({
       rpName: "Concorde Cartulaire",
@@ -69,8 +49,8 @@ export async function POST(req: Request) {
       userID: new Uint8Array(Buffer.from(u.webauthn_user_id!, "base64url")),
       userName: u.email,
       attestationType: "none",
-      // @ts-ignore : TS n'aime pas le cast de Buffer
-      excludeCredentials: existing.map((c) => ({
+      // @ts-ignore
+      excludeCredentials: existing.map(c => ({
         id: new Uint8Array(Buffer.from(c.credential_id, "base64url")),
         type: "public-key" as const,
       })),
@@ -84,31 +64,14 @@ export async function POST(req: Request) {
       expires_at: new Date(Date.now() + 5 * 60 * 1000),
     });
 
-    // ✅ cookies() est synchrone
-    const jar = cookies();
-    // @ts-ignore : TS croit parfois que .set n’existe pas
-    jar.set("webauthn_reg_uid", String(u.id), {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 10 * 60,
-      secure: true,
+    const res = NextResponse.json(opts);
+    // poser le cookie sur la réponse
+    res.cookies.set("webauthn_reg_uid", String(u.id), {
+      httpOnly: true, sameSite: "lax", path: "/", maxAge: 10 * 60, secure: true,
     });
-
-    console.log("[WEBAUTHN /registration/start] OK", {
-      rpID: opts.rp.id,
-      user: u.email,
-      challengeLen: opts.challenge.length,
-    });
-
-    return NextResponse.json(opts);
+    return res;
   } catch (e: any) {
-    console.error("[WEBAUTHN /registration/start] ERROR:", e);
-    console.error(e?.stack || "no stack");
-
-    return NextResponse.json(
-      { error: "start_failed", details: String(e), stack: e?.stack },
-      { status: 500 }
-    );
+    console.error("[webauthn/registration/start] ERROR:", e?.stack || e);
+    return NextResponse.json({ error: "start_failed", details: String(e) }, { status: 500 });
   }
 }
