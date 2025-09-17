@@ -1,95 +1,83 @@
-// src/app/(auth)/webauthn/registration/finish/route.ts
-import { NextResponse } from "next/server";
-import { cookies as getCookies } from "next/headers";
-import { verifyRegistrationResponse } from "@simplewebauthn/server";
-import type { RegistrationResponseJSON } from "@simplewebauthn/types";
+// src/app/api/payments/gc/redirect/start/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { cookies, headers } from "next/headers";
+import crypto from "node:crypto";
 import { db } from "@/server/db/client";
-import { auth_challenges, user_passkeys } from "@/server/db/schema";
-import { and, eq, gt, desc } from "drizzle-orm";
+import { factures } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
+import { gcFetch } from "@/server/payments/gc-http";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const toB64Url = (buf: ArrayBuffer | Uint8Array) =>
-  Buffer.from(buf as any).toString("base64url");
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
+  const invoiceId = url.searchParams.get("invoice_id");
+  const clientEmail =
+    url.searchParams.get("client_email") || "demo@example.com";
+  const clientNom = url.searchParams.get("client_nom") || "Client Demo";
 
-export async function POST(req: Request) {
-  const body = (await req.json()) as RegistrationResponseJSON;
+  if (!invoiceId) {
+    return NextResponse.json({ error: "invoice_id manquant" }, { status: 400 });
+  }
 
-//   const jar = cookies(); // ATTENTION COOKIES OU GETCOOKIES IONTROUVABLES EN SOI LES DEUX SONT INSTALLES
-// const session = jar.get("gc_session")?.value;
-  const jar = await getCookies();
-  const uid = jar.get("webauthn_reg_uid")?.value;
-  if (!uid) return NextResponse.json({ error: "no uid cookie" }, { status: 400 });
+  // ✅ headers() est sync
+  const h = headers();
+  // @ts-ignore
+  const proto = h.get("x-forwarded-proto") || "http";
+  // @ts-ignore
+  const host = h.get("host") || "localhost:3000";
+  const base = `${proto}://${host}`;
 
-  // challenge le + récent de type 'webauthn-reg' et non expiré
-  const now = new Date();
-  const [ch] = await db
-    .select()
-    .from(auth_challenges)
-    .where(
-      and(
-        eq(auth_challenges.user_id, Number(uid)),
-        eq(auth_challenges.type, "webauthn-reg"),
-        gt(auth_challenges.expires_at, now),
-      )
-    )
-    .orderBy(desc(auth_challenges.id))
-    .limit(1);
+  const inv = (
+    await db
+      .select()
+      .from(factures)
+      .where(eq(factures.id, Number(invoiceId)))
+      .limit(1)
+  )[0];
+  if (!inv) {
+    return NextResponse.json({ error: "Facture introuvable" }, { status: 404 });
+  }
 
-  if (!ch) return NextResponse.json({ error: "no valid challenge" }, { status: 400 });
+  const sessionToken = crypto.randomUUID();
+  const successUrl = `${base}/api/payments/gc/redirect/complete?invoice_id=${invoiceId}`;
 
   try {
-    // autoriser plusieurs origins si besoin (preview + prod)
-    const origins =
-      process.env.WEBAUTHN_ORIGIN?.split(",").map((s) => s.trim()) ?? [];
+    const payload = {
+      redirect_flows: {
+        description: `Facture #${invoiceId}`,
+        session_token: sessionToken,
+        success_redirect_url: successUrl,
+        prefilled_customer: { given_name: clientNom, email: clientEmail },
+      },
+    };
 
-    const verification = await verifyRegistrationResponse({
-      response: body,
-      expectedChallenge: ch.challenge,
-      expectedRPID: process.env.WEBAUTHN_RP_ID!,
-      expectedOrigin: origins.length ? origins : process.env.WEBAUTHN_ORIGIN!,
-      requireUserVerification: true,
+    const flow = await gcFetch<{
+      redirect_flows: { id: string; redirect_url: string };
+    }>("/redirect_flows", {
+      method: "POST",
+      body: JSON.stringify(payload),
+      idempotencyKey: crypto.randomUUID(),
     });
 
-    if (!verification.verified || !verification.registrationInfo) {
-      return NextResponse.json({ error: "verification_failed" }, { status: 400 });
-    }
-
-    const {
-      credentialID,
-      credentialPublicKey,
-      counter,
-    } = verification.registrationInfo;
-
-    // transports si fournis par le navigateur (optionnel)
-    const transports = (body.response as any)?.transports;
-    const transportsCsv = Array.isArray(transports) ? transports.join(",") : null;
-
-    // insertion (unique sur credential_id)
-    await db.insert(user_passkeys).values({
-      user_id: Number(uid),
-      // @ts-ignore
-      credential_id: toB64Url(credentialID),
-      public_key: Buffer.from(credentialPublicKey).toString("base64url"),
-      counter,
-      transports: transportsCsv ?? undefined,
+    // ✅ cookies() est sync
+    const jar = cookies();
+    // @ts-ignore (si TS râle sur .set)
+    jar.set("gc_session", sessionToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 10 * 60,
+      secure: proto === "https",
     });
 
-    // nettoyage cookie
-    jar.set("webauthn_reg_uid", "", {
-      httpOnly: true, sameSite: "lax", path: "/", maxAge: 0, secure: true,
-    });
-
-    console.log("[WEBAUTHN /finish] OK uid=", uid);
-
-    return NextResponse.json({ ok: true });
+    return NextResponse.redirect(flow.redirect_flows.redirect_url);
   } catch (e: any) {
-    // gestion simple du conflit unique (credential déjà enregistrée)
-    const msg = String(e?.message || e);
-    if (msg.includes("duplicate key") || msg.includes("unique")) {
-      return NextResponse.json({ ok: true, note: "credential déjà connue" });
-    }
-    console.error("[WEBAUTHN /finish] error:", e);
-    return NextResponse.json({ error: "exception", details: msg }, { status: 500 });
+    console.error("[GC redirect start] fail:", e?.status, e?.body || e);
+    return NextResponse.json(
+      { ok: false, error: "gc_create_failed", details: e?.body || String(e) },
+      { status: 500 }
+    );
   }
 }

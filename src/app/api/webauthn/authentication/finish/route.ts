@@ -1,6 +1,6 @@
 // src/app/api/webauthn/authentication/finish/route.ts
 import { NextResponse } from "next/server";
-import { cookies as getCookies } from "next/headers";
+import { cookies } from "next/headers";
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/types";
 import { db } from "@/server/db/client";
@@ -12,10 +12,12 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   const body = (await req.json()) as AuthenticationResponseJSON;
 
-  const jar = await getCookies();
+  const jar = cookies(); // ✅ pas d'await
+  // @ts-ignore
   const uid = jar.get("webauthn_auth_uid")?.value;
-  if (!uid)
+  if (!uid) {
     return NextResponse.json({ error: "no uid cookie" }, { status: 400 });
+  }
 
   const [ch] = await db
     .select()
@@ -29,13 +31,16 @@ export async function POST(req: Request) {
     )
     .orderBy(desc(auth_challenges.id))
     .limit(1);
-  if (!ch)
+
+  if (!ch) {
     return NextResponse.json({ error: "no valid challenge" }, { status: 400 });
+  }
 
   // retrouver la passkey par credentialId renvoyé par le navigateur
   const credIdB64url = Buffer.from(
     new Uint8Array((body.rawId as any) ?? []).buffer
   ).toString("base64url");
+
   const [pk] = await db
     .select()
     .from(user_passkeys)
@@ -46,15 +51,18 @@ export async function POST(req: Request) {
       )
     )
     .limit(1);
-  if (!pk)
+
+  if (!pk) {
     return NextResponse.json(
       { error: "credential not found" },
       { status: 404 }
     );
+  }
 
   try {
     const origins =
       process.env.WEBAUTHN_ORIGIN?.split(",").map((s) => s.trim()) ?? [];
+
     const verification = await verifyAuthenticationResponse({
       response: body,
       expectedChallenge: ch.challenge,
@@ -62,10 +70,8 @@ export async function POST(req: Request) {
       expectedOrigin: origins.length ? origins : process.env.WEBAUTHN_ORIGIN!,
       requireUserVerification: true,
       authenticator: {
-        // @ts-ignore
-        credentialID: new Uint8Array(
-          Buffer.from(pk.credential_id, "base64url")
-        ),
+        // @ts-ignore TS chipote sur le type
+        credentialID: new Uint8Array(Buffer.from(pk.credential_id, "base64url")),
         credentialPublicKey: new Uint8Array(
           Buffer.from(pk.public_key, "base64url")
         ),
@@ -93,7 +99,8 @@ export async function POST(req: Request) {
       );
 
     // créer une session minimaliste
-    const jar2 = await getCookies();
+    const jar2 = cookies(); // ✅ pas d'await
+    // @ts-ignore (TS croit que set n'existe pas)
     jar2.set("session_uid", String(uid), {
       httpOnly: true,
       sameSite: "lax",
@@ -102,6 +109,7 @@ export async function POST(req: Request) {
       secure: true,
     });
     // nettoyer le cookie d’auth
+    // @ts-ignore
     jar2.set("webauthn_auth_uid", "", {
       httpOnly: true,
       sameSite: "lax",

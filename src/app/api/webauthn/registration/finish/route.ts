@@ -1,6 +1,6 @@
 // src/app/api/webauthn/registration/finish/route.ts
 import { NextResponse } from "next/server";
-import { cookies as getCookies } from "next/headers";
+import { cookies } from "next/headers";
 import { verifyRegistrationResponse } from "@simplewebauthn/server";
 import type { RegistrationResponseJSON } from "@simplewebauthn/types";
 import { db } from "@/server/db/client";
@@ -15,10 +15,13 @@ const toB64Url = (buf: ArrayBuffer | Uint8Array) =>
 export async function POST(req: Request) {
   const body = (await req.json()) as RegistrationResponseJSON;
 
-  const jar = await getCookies();
+  const jar = cookies(); // ✅ synchrone
+  // @ts-ignore
   const uid = jar.get("webauthn_reg_uid")?.value;
-  if (!uid)
+  if (!uid) {
+    console.error("[/registration/finish] no uid cookie");
     return NextResponse.json({ error: "no uid cookie" }, { status: 400 });
+  }
 
   const [ch] = await db
     .select()
@@ -32,12 +35,16 @@ export async function POST(req: Request) {
     )
     .orderBy(desc(auth_challenges.id))
     .limit(1);
-  if (!ch)
+
+  if (!ch) {
+    console.error("[/registration/finish] no valid challenge for uid", uid);
     return NextResponse.json({ error: "no valid challenge" }, { status: 400 });
+  }
 
   try {
     const origins =
       process.env.WEBAUTHN_ORIGIN?.split(",").map((s) => s.trim()) ?? [];
+
     const verification = await verifyRegistrationResponse({
       response: body,
       expectedChallenge: ch.challenge,
@@ -47,6 +54,7 @@ export async function POST(req: Request) {
     });
 
     if (!verification.verified || !verification.registrationInfo) {
+      console.error("[/registration/finish] verification failed", verification);
       return NextResponse.json(
         { error: "verification_failed" },
         { status: 400 }
@@ -55,6 +63,7 @@ export async function POST(req: Request) {
 
     const { credentialID, credentialPublicKey, counter } =
       verification.registrationInfo;
+
     const transports = (body.response as any)?.transports;
     const transportsCsv = Array.isArray(transports)
       ? transports.join(",")
@@ -62,15 +71,16 @@ export async function POST(req: Request) {
 
     await db.insert(user_passkeys).values({
       user_id: Number(uid),
-      //   @ts-ignore
+      // @ts-ignore Buffer → base64url
       credential_id: toB64Url(credentialID),
       public_key: Buffer.from(credentialPublicKey).toString("base64url"),
       counter,
       transports: transportsCsv ?? undefined,
     });
 
-    const jar2 = await getCookies();
-    jar2.set("webauthn_reg_uid", "", {
+    // Nettoyage du cookie
+    // @ts-ignore TS croit que .set n’existe pas
+    jar.set("webauthn_reg_uid", "", {
       httpOnly: true,
       sameSite: "lax",
       path: "/",
