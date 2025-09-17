@@ -23,7 +23,7 @@
     "jsx": "preserve",
     "incremental": true,
     "types": [
-      "node"
+      "node", "@types/pdfkit"
     ],
     "esModuleInterop": true,
     "plugins": [

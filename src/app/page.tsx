@@ -98,6 +98,14 @@ export default function DashboardPage() {
         {isAuth && !loading && (
           <>
             <Grid container spacing={2}>
+              {/* Clients */}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 2 }}>
+                  <Typography variant="h6">Clients</Typography>
+                  <Typography>Total : {data?.clients}</Typography>
+                </Paper>
+              </Grid>
+
               {/* Contrats */}
               <Grid item xs={12} md={4}>
                 <Paper sx={{ p: 2 }}>
@@ -105,7 +113,7 @@ export default function DashboardPage() {
                   <Typography>Actifs : {data?.contrats}</Typography>
                 </Paper>
               </Grid>
-
+              
               {/* Factures */}
               <Grid item xs={12} md={4}>
                 <Paper sx={{ p: 2 }}>
@@ -114,11 +122,20 @@ export default function DashboardPage() {
                 </Paper>
               </Grid>
 
-              {/* Clients */}
+
+              {/* Prestataires */}
               <Grid item xs={12} md={4}>
                 <Paper sx={{ p: 2 }}>
-                  <Typography variant="h6">Clients</Typography>
-                  <Typography>Total : {data?.clients}</Typography>
+                  <Typography variant="h6">Prestataires</Typography>
+                  <Typography>Total : {data?.prestataires}</Typography>
+                </Paper>
+              </Grid>
+
+              {/* Collaborateurs */}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 2 }}>
+                  <Typography variant="h6">Collaborateurs</Typography>
+                  <Typography>Total : {data?.collaborateurs}</Typography>
                 </Paper>
               </Grid>
             </Grid>

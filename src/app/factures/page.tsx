@@ -1,200 +1,128 @@
-"use client";
-import { useEffect, useMemo, useState } from "react";
-import {
-  DataGrid,
-  GridToolbarContainer,
-  GridToolbarQuickFilter,
-  GridToolbarExport,
-} from "@mui/x-data-grid";
+import Link from "next/link";
+import { db } from "@/server/db/client";
+import { factures, contrats, clients } from "@/server/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { Nav } from "@/components/Nav";
 import {
   Container,
   Typography,
   Paper,
   Stack,
-  TextField,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  CircularProgress,
+  Grid,
 } from "@mui/material";
-import { Nav } from "@/components/Nav";
 
-type ContratRow = {
+export const dynamic = "force-dynamic";
+
+type Row = {
   id: number;
-  client: string;
-  titre: string;
-  cree_le: string;
-  client_id: number;
+  date_emission: Date | null;
+  montant_ttc: string;
+  statut_paiement: string;
+  client_nom: string | null;
+  client_email: string | null;
 };
-type ClientOpt = { id: number; nom: string };
 
-export default function ContratsPage() {
-  const [rows, setRows] = useState<ContratRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [q, setQ] = useState("");
-  const [open, setOpen] = useState(false);
-  const [clients, setClients] = useState<ClientOpt[]>([]);
-  const [form, setForm] = useState<{ client_id: number | ""; titre: string }>({
-    client_id: "",
-    titre: "",
-  });
+async function getRows(): Promise<Row[]> {
+  const rows = await db
+    .select({
+      id: factures.id,
+      date_emission: factures.date_emission,
+      montant_ttc: factures.montant_ttc,
+      statut_paiement: factures.statut_paiement,
+      client_nom: clients.nom,
+      client_email: clients.email,
+    })
+    .from(factures)
+    .leftJoin(contrats, eq(contrats.id, factures.contrat_id))
+    .leftJoin(clients, eq(clients.id, contrats.client_id))
+    .orderBy(desc(factures.id));
 
-  // Chargement principal
-  const load = async () => {
-    setLoading(true);
-    const r = await fetch("/api/contrats?q=" + encodeURIComponent(q));
-    const data = await r.json();
-    setRows(data);
-    setLoading(false);
-  };
+  return rows as Row[];
+}
 
-  const loadOpts = async () => {
-    const r = await fetch("/api/contrats/options");
-    setClients(await r.json());
-  };
-
-  useEffect(() => {
-    load();
-    loadOpts();
-  }, []);
-
-  // Colonnes
-  const cols = useMemo(
-    () => [
-      { field: "id", headerName: "#", width: 80 },
-      { field: "client", headerName: "Client", flex: 1 },
-      { field: "titre", headerName: "Titre", flex: 1.2 },
-      {
-        field: "cree_le",
-        headerName: "Créé le",
-        width: 150,
-        valueFormatter: (params: any) =>
-          params.value
-            ? new Date(params.value).toLocaleDateString("fr-FR")
-            : "",
-      },
-    ],
-    []
-  );
-
-  // Création
-  const onCreate = async () => {
-    await fetch("/api/contrats", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    setOpen(false);
-    setForm({ client_id: "", titre: "" });
-    await load();
-  };
-
-  // Toolbar
-  function CustomToolbar() {
-    return (
-      <GridToolbarContainer>
-        <GridToolbarQuickFilter />
-        <GridToolbarExport />
-      </GridToolbarContainer>
-    );
-  }
+export default async function FacturesPage() {
+  const facturesRows = await getRows();
 
   return (
     <>
       <Nav />
       <Container sx={{ py: 4 }}>
         <Typography variant="h4" gutterBottom>
-          Contrats
+          Factures
         </Typography>
 
-        <Paper sx={{ p: 2, mb: 2 }}>
-          <Stack direction="row" spacing={2}>
-            <TextField
-              size="small"
-              label="Recherche (client/titre)"
-              variant="outlined"
-              InputLabelProps={{ shrink: true }}
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-            <Button variant="outlined" onClick={load}>
-              Filtrer
-            </Button>
-            <Button variant="contained" onClick={() => setOpen(true)}>
-              Nouveau contrat
-            </Button>
-          </Stack>
-        </Paper>
-
-        {loading ? (
-          <Stack alignItems="center" sx={{ mt: 4 }}>
-            <CircularProgress />
-            <Typography sx={{ mt: 1 }}>Chargement des données...</Typography>
-          </Stack>
-        ) : (
-          <div style={{ height: 540, width: "100%" }}>
-            <DataGrid
-              rows={rows}
-              columns={cols}
-              getRowId={(row) => row.id}
-              slots={{ toolbar: CustomToolbar }}
-              disableRowSelectionOnClick
-            />
-          </div>
+        {facturesRows.length === 0 && (
+          <Typography>Aucune facture pour le moment.</Typography>
         )}
 
-        <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-          <DialogTitle>Nouveau contrat</DialogTitle>
-          <DialogContent>
-            <Stack spacing={2} sx={{ mt: 1 }}>
-              <FormControl fullWidth>
-                <InputLabel id="clbl">Client</InputLabel>
-                <Select
-                  labelId="clbl"
-                  label="Client"
-                  value={form.client_id === "" ? "" : String(form.client_id)}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      client_id: Number(e.target.value),
-                    }))
-                  }
+        <Stack spacing={2}>
+          {facturesRows.map((f) => {
+            const clientEmail = f.client_email ?? "demo@example.com";
+            const clientNom = f.client_nom ?? "Client Démo";
+            const pdfHref = `/api/factures/${f.id}/pdf`;
+            const payHref =
+              `/api/payments/gocardless/redirect/start` +
+              `?invoice_id=${f.id}` +
+              `&client_email=${encodeURIComponent(clientEmail)}` +
+              `&client_nom=${encodeURIComponent(clientNom)}`;
+
+            return (
+              <Paper key={f.id} sx={{ p: 2 }}>
+                <Grid
+                  container
+                  spacing={2}
+                  alignItems="center"
+                  justifyContent="space-between"
                 >
-                  {clients.map((c) => (
-                    <MenuItem key={c.id} value={c.id}>
-                      {c.nom}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <TextField
-                label="Titre"
-                variant="outlined"
-                InputLabelProps={{ shrink: true }}
-                value={form.titre}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, titre: e.target.value }))
-                }
-              />
-            </Stack>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpen(false)}>Annuler</Button>
-            <Button
-              variant="contained"
-              onClick={onCreate}
-              disabled={form.client_id === "" || !form.titre.trim()}
-            >
-              Créer
-            </Button>
-          </DialogActions>
-        </Dialog>
+                  <Grid item xs={12} md="auto">
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      Facture #{f.id}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Émise le{" "}
+                      {f.date_emission
+                        ? new Date(f.date_emission).toLocaleDateString("fr-FR")
+                        : "—"}
+                    </Typography>
+                    <Typography variant="body2">
+                      Client : {f.client_nom ?? "—"}
+                    </Typography>
+                    <Typography variant="body2">
+                      Montant TTC : {Number(f.montant_ttc).toFixed(2)} €
+                    </Typography>
+                    <Typography variant="body2">
+                      Statut paiement : {f.statut_paiement}
+                    </Typography>
+                  </Grid>
+
+                  <Grid item xs={12} md="auto">
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        component={Link}
+                        href={pdfHref}
+                        target="_blank"
+                      >
+                        Télécharger PDF
+                      </Button>
+
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        component={Link}
+                        href={payHref}
+                      >
+                        Payer par SEPA
+                      </Button>
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </Paper>
+            );
+          })}
+        </Stack>
       </Container>
     </>
   );

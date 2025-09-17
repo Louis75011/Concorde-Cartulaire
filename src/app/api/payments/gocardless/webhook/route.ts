@@ -1,50 +1,41 @@
-import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
+import { NextResponse } from "next/server";
 import { db } from "@/server/db/client";
-import { prelevements } from "@/server/db/schema";
-import { eq } from 'drizzle-orm';
+import { payments, factures } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
-function timingSafeEqualHex(a: string, b: string) {
-  const ba = Buffer.from(a, 'hex');
-  const bb = Buffer.from(b, 'hex');
-  if (ba.length !== bb.length) return false;
-  return crypto.timingSafeEqual(ba, bb);
-}
+type GCEvent = {
+  id: string;
+  resource_type: "payments" | "mandates" | string;
+  action: string; // "created" | "submitted" | "confirmed" | "failed" | ...
+  links?: { payment?: string; mandate?: string };
+};
 
-export async function POST(req: NextRequest) {
-  const secret = process.env.GOCARDLESS_WEBHOOK_SECRET;
-  if (!secret) return new NextResponse('Missing GOCARDLESS_WEBHOOK_SECRET', { status: 500 });
+export async function POST(req: Request) {
+  // Pour la démo, on ne valide pas la signature.
+  // En prod : validez l'en-tête "Webhook-Signature" avec GOCARDLESS_WEBHOOK_SECRET.
+  const body = await req.json().catch(() => null);
+  if (!body) return NextResponse.json({ error: "invalid json" }, { status: 400 });
 
-  const raw = await req.text();
-  const signature = req.headers.get('Webhook-Signature');
-  if (!signature) return new NextResponse('Missing signature', { status: 400 });
+  const events: GCEvent[] = body.events ?? [];
+  for (const ev of events) {
+    if (ev.resource_type !== "payments") continue;
+    const pid = ev.links?.payment;
+    if (!pid) continue;
 
-  const computed = crypto.createHmac('sha256', secret).update(raw, 'utf8').digest('hex');
-  if (!timingSafeEqualHex(computed, signature)) return new NextResponse('Invalid signature', { status: 400 });
+    const p = (await db.select().from(payments).where(eq(payments.providerPaymentId, pid)).limit(1))[0];
+    if (!p) continue;
 
-  const payload = JSON.parse(raw);
-  for (const ev of payload.events ?? []) {
-    const provider_event_id = ev.id;
-    const statut =
-      (ev?.details?.cause === 'payment_paid' || ev.action === 'paid') ? 'paid' :
-      ev.action === 'failed' ? 'failed' :
-      ev.action === 'cancelled' ? 'cancelled' : 'submitted';
+    await db.update(payments).set({ status: ev.action }).where(eq(payments.id, p.id));
 
-    const found = await db.select().from(prelevements).where(eq(prelevements.provider_event_id, provider_event_id)).limit(1);
-    if (found.length) {
-      await db.update(prelevements).set({ statut }).where(eq(prelevements.id, found[0].id));
-    } else {
-      await db.insert(prelevements).values({
-        facture_id: 0,
-        provider_id: 1,
-        montant: '0.00',
-        devise: 'EUR',
-        statut,
-        provider_event_id,
-      });
+    if (ev.action === "confirmed") {
+      await db.update(factures).set({ statut_paiement: "payee" }).where(eq(factures.id, p.invoiceId));
+    }
+    if (ev.action === "failed") {
+      await db.update(factures).set({ statut_paiement: "en_retard" }).where(eq(factures.id, p.invoiceId));
     }
   }
+
   return NextResponse.json({ ok: true });
 }

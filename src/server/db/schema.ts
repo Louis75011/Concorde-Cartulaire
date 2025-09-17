@@ -76,12 +76,32 @@ export const affectations = pgTable("affectations", {
   date_fin: timestamp("date_fin"),
 });
 
-/** ---------- Providers paiement + Prélèvements (pour /paiements) ---------- */
+/** ---------- Providers paiement + Mandates + Prélèvements (pour /paiements) ---------- */
 export const payment_providers = pgTable("payment_providers", {
   id: serial("id").primaryKey(),
   code: text("code").notNull(),
   enabled: boolean("enabled").default(false).notNull(),
   settings: jsonb("settings"),
+});
+
+export const gcMandates = pgTable("gc_mandates", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id").notNull(),              // FK logique → clients.id (à relier si vous avez la FK)
+  gcMandateId: varchar("gc_mandate_id", { length: 100 }).notNull().unique(),
+  scheme: varchar("scheme", { length: 32 }),
+  status: varchar("status", { length: 32 }).default("pending").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  invoiceId: integer("invoice_id").notNull(),            // FK logique → factures.id
+  provider: varchar("provider", { length: 32 }).default("gocardless").notNull(),
+  providerPaymentId: varchar("provider_payment_id", { length: 100 }),
+  amountCents: integer("amount_cents").notNull(),
+  currency: varchar("currency", { length: 3 }).default("EUR").notNull(),
+  status: varchar("status", { length: 32 }).default("created").notNull(), // created|submitted|confirmed|failed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const prelevements = pgTable("prelevements", {
