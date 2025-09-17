@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
     // 2) handle stable
     if (!u.webauthn_user_id) {
-      const handle = Buffer.from(randomBytes(16)).toString("base64url");
+      const handle = randomBytes(16).toString("base64url"); // ✅ stocké en base en string
       await db.update(users).set({ webauthn_user_id: handle }).where(eq(users.id, u.id));
       u.webauthn_user_id = handle as any;
     }
