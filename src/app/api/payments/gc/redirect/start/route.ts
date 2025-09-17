@@ -4,40 +4,57 @@ import crypto from "node:crypto";
 import { db } from "@/server/db/client";
 import { factures } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { gc } from "@/server/payments/gocardless-client";
+import { gcFetch } from "@/server/payments/gc-http";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const invoiceId = url.searchParams.get("invoice_id");
-  const clientEmail = url.searchParams.get("client_email") ?? "";
-  const clientNom = url.searchParams.get("client_nom") ?? "";
+  const clientEmail = url.searchParams.get("client_email") || "demo@example.com";
+  const clientNom = url.searchParams.get("client_nom") || "Client Demo";
 
   if (!invoiceId) return NextResponse.json({ error: "invoice_id manquant" }, { status: 400 });
-  if (!process.env.APP_BASE_URL)
-    return NextResponse.json({ error: "APP_BASE_URL manquant" }, { status: 500 });
+
+  const base = process.env.APP_BASE_URL?.trim();
+  if (!base || !base.startsWith("https://")) {
+    return NextResponse.json({ error: "APP_BASE_URL doit être en HTTPS public" }, { status: 500 });
+  }
 
   const inv = (await db.select().from(factures).where(eq(factures.id, Number(invoiceId))).limit(1))[0];
   if (!inv) return NextResponse.json({ error: "Facture introuvable" }, { status: 404 });
 
   const sessionToken = crypto.randomUUID();
+  const successUrl = `${base}/api/payments/gc/redirect/complete?invoice_id=${invoiceId}`;
 
-  const flow = await gc.redirectFlows.create({
-    description: `Facture #${invoiceId}`,
-    session_token: sessionToken,
-    success_redirect_url:
-      `${process.env.APP_BASE_URL}/api/payments/gc/redirect/complete?invoice_id=${invoiceId}`,
-    prefilled_customer: {
-      given_name: clientNom || "Client",
-      email: clientEmail || "demo@example.com",
-    },
-    metadata: { invoice_id: String(invoiceId) },
-  });
+  try {
+    // ⚠️ Body enveloppé sous "redirect_flows" (spec officielle)
+    const payload = {
+      redirect_flows: {
+        description: `Facture #${invoiceId}`,
+        session_token: sessionToken,
+        success_redirect_url: successUrl,
+        prefilled_customer: { given_name: clientNom, email: clientEmail },
+        // scheme: "sepa_core" // si besoin
+      },
+    };
 
-  (await cookies()).set("gc_session", sessionToken, {
-    httpOnly: true, sameSite: "lax", path: "/", maxAge: 10 * 60,
-  });
+    const flow = await gcFetch<{ redirect_flows: { id: string; redirect_url: string } }>(
+      "/redirect_flows",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+        idempotencyKey: crypto.randomUUID(),
+      }
+    );
 
-  return NextResponse.redirect(flow.redirect_url);
+    (await cookies()).set("gc_session", sessionToken, {
+      httpOnly: true, sameSite: "lax", path: "/", maxAge: 10 * 60,
+    });
+
+    return NextResponse.redirect(flow.redirect_flows.redirect_url);
+  } catch (e: any) {
+    console.error("[GC redirect start] fail:", e?.status, e?.body);
+    return NextResponse.json({ ok: false, error: "gc_create_failed", details: e?.body }, { status: 500 });
+  }
 }

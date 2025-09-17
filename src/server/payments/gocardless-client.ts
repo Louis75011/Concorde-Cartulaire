@@ -9,13 +9,10 @@ if (!raw) {
 
 // ⚠️ supprime espaces ou \r\n accidentels
 const token = raw.trim();
-
 const env = process.env.GOCARDLESS_ENV === "live" ? "live" : "sandbox";
 
 export const gc = gocardless(token, {
   environment: env,
   version: "2015-07-06",
 });
-
-// petit log debug
 console.log("[GC] env =", env, "tokenPrefix =", token.slice(0, 10), "len =", token.length);

@@ -1,5 +1,7 @@
 // README
 
+// Chrome More tools>WebAuthn enable virtual CO -> localhost:3000/factures -> npx localtunnel --port 3000 -> env.local avec URL générée -> Payer Sepa 
+
 // Propositions / Precisions supplementaires & solution intégrée pour gérer : Clients (données, contrats, facturation) Collaborateurs (accès, rôles, affectations) Prestataires (typologie, missions, suivi) Processus contrat vendeur ↔ demandeur Paiement et suivi via outils tiers (GoCardless, SlimPay, CRM, GnuCash ; authentification moins forte mais similaire si autre est gratuit, idem pour paiement). Typologie des gens. 
 
 // Choix techniques utilisés, listés et pourquoi (postgre next neon drizzle etc)
