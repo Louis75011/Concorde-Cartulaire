@@ -1,4 +1,3 @@
-// src\app\api\payments\gc\redirect\complete\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { cookies as getCookies } from "next/headers";
 import { db } from "@/server/db/client";

@@ -94,10 +94,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json(opts);
   } catch (e: any) {
-    console.error("[WEBAUTHN /registration/start] ERROR:", e?.message || e);
-    // TEMP: renvoyer le message pour diagnostique dans le navigateur
+    console.error("[WEBAUTHN /registration/start] ERROR:", e);
+    console.error(e?.stack || "no stack");
+
     return NextResponse.json(
-      { error: "start_failed", details: String(e) },
+      { error: "start_failed", details: String(e), stack: e?.stack },
       { status: 500 }
     );
   }
