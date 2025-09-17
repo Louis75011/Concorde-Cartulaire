@@ -1,3 +1,4 @@
+// src\app\api\payments\gc\ping\route.ts
 import { NextResponse } from "next/server";
 import { getGC } from "@/server/payments/gocardless-client";
 

@@ -1,3 +1,4 @@
+// src/server/payments/gc-http.ts
 // Client HTTP minimal fiable pour GoCardless (sandbox/live)
 const BASE =
   process.env.GOCARDLESS_ENV === "live"

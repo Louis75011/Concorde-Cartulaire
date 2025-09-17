@@ -1,3 +1,4 @@
+// src\app\api\payments\gc\test\route.ts
 export const runtime = "nodejs";
 
 export async function GET() {

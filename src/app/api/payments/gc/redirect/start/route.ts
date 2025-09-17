@@ -1,3 +1,4 @@
+// src\app\api\payments\gc\redirect\start\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { cookies as getCookies, headers as getHeaders } from "next/headers";
 import crypto from "node:crypto";
