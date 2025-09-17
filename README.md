@@ -1,15 +1,19 @@
 # Concorde Cartulaire (Draft V0.5) — Gestion Clients / Contrats / Prestataires
+
 # Alias la Mercuriale des Chartes
 
 > **Un projet de back-office moderne, enraciné dans la tradition des cartulaires médiévaux, et pensé pour répondre aux besoins concrets d’administration des contrats, factures, clients et prestataires, dans un cadre sécurisé, extensible et intégrable.**
 
 ---
 
+<!-- VOIR LES IMAGES, AUDIOS et VIDEOS en dossier PRESENTATION -->
+
 ## 1. Choix techniques et architecture
 
 Le projet repose sur une **stack moderne** choisie avec soin pour combiner robustesse, performance, gratuité des environnements de préproduction et respect des standards de sécurité actuels.
 
 ### Frontend
+
 - **Next.js 15** (React 19, App Router) : framework universel, optimisé pour SEO, performances et SSR/ISR.
 - **React 19** : la version stable la plus récente, garantissant compatibilité avec l’écosystème et support long terme.
 - **Material UI v6 (MUI)** : librairie UI robuste, intégrée avec Emotion, pour un rendu accessible et moderne.
@@ -17,17 +21,20 @@ Le projet repose sur une **stack moderne** choisie avec soin pour combiner robus
 - **DataGrid (MUI X)** : pour les CRUD (Clients, Contrats, Factures, etc.) avec filtrage, export CSV, pagination.
 
 ### Backend
+
 - **Next.js API Routes** : gestion des endpoints RESTful (`/api/clients`, `/api/contrats`, `/api/factures`, etc.).
 - **PostgreSQL (Neon)** : base de données relationnelle robuste, hébergée gratuitement en mode serverless.
 - **Drizzle ORM** : typage fort, migrations simples, compatible TypeScript.
 
 ### Sécurité
+
 - **Content-Security-Policy (CSP)** durcie avec `nonce`, `strict-dynamic`, HSTS preload.
 - **FIDO2 / Passkeys (SimpleWebAuthn)** : authentification moderne, sans mot de passe.
 - **TOTP** (One-Time Password) : second facteur, secret chiffré en AES-256.
 - **JWT en cookie HttpOnly** : gestion des sessions.
 
 ### Intégrations externes (pré-sélection)
+
 - **Paiement / Abonnements** : GoCardless (sandbox), SlimPay.
 - **Signature électronique** : DocuSeal (API, webhooks, archivage PDF).
 - **Comptabilité** : GnuCash (open source), export CSV/JSON.
@@ -35,9 +42,10 @@ Le projet repose sur une **stack moderne** choisie avec soin pour combiner robus
 - **CRM** (optionnel) : HubSpot (cloud), Dolibarr (open source), ou implémentation interne.
 
 ### Infrastructure
+
 - **Hébergement** : Vercel (front + API), gratuit et optimisé pour Next.js.
 - **Base de données** : Neon (PostgreSQL serverless).
-- **Outils DB** : DBeaver / DbVisualizer pour modélisation.
+- **Outils DB** : DbVisualizer pour modélisation.
 - **DevOps** : pipeline CI/CD simplifié (GitHub → Vercel → Neon).
 
 ---
@@ -45,11 +53,13 @@ Le projet repose sur une **stack moderne** choisie avec soin pour combiner robus
 ## 2. Fonctionnalités déjà développées
 
 ### Base de données (Neon + Drizzle)
+
 - Tables créées : `clients`, `contrats`, `factures`, `prestataires`, `collaborateurs`, `affectations`.
 - Colonnes enrichies : `tel`, `secteur`, `entreprise`, `date_creation` pour Clients.
 - Migrations cohérentes et traçables.
 
 ### API Routes
+
 - `GET /api/clients` : liste filtrable.
 - `POST /api/clients` : création d’un client.
 - CRUD en place pour `clients`, extensible aux autres entités.
@@ -60,6 +70,7 @@ Le projet repose sur une **stack moderne** choisie avec soin pour combiner robus
   - Export comptable (`/api/accounting/export`).
 
 ### Frontend
+
 - Page **Clients** avec DataGrid :
   - Filtrage,
   - Export CSV,
@@ -68,6 +79,7 @@ Le projet repose sur une **stack moderne** choisie avec soin pour combiner robus
 - Design cohérent (MUI + thème bleu marine).
 
 ### Sécurité
+
 - **CSP fonctionnelle** (avec `nonce`, `unsafe-eval` seulement en dev).
 - Middleware Next.js pour injecter les headers de sécurité :
   - CSP,
@@ -77,6 +89,7 @@ Le projet repose sur une **stack moderne** choisie avec soin pour combiner robus
   - HSTS preload.
 
 ### Déploiement
+
 - **Préproduction Vercel** fonctionnelle, reliée à Neon.
 - `.env.example` clair, prêt pour adaptation.
 
@@ -85,23 +98,27 @@ Le projet repose sur une **stack moderne** choisie avec soin pour combiner robus
 ## 3. Fonctionnalités à développer prochainement
 
 1. **Authentification complète**
+
    - Persistance WebAuthn (stockage `user_passkeys`).
    - Flux TOTP complet (QR code + validation).
    - Session JWT (login/logout).
 
 2. **CRUD étendus**
+
    - Contrats : statuts (brouillon, actif, clos).
    - Factures : statut de paiement.
    - Prestataires : typologie (dev, intégrateur, sécurité).
    - Collaborateurs : rôles et droits.
 
 3. **Intégrations externes**
+
    - GoCardless : mandat et prélèvement sandbox.
    - DocuSeal : création d’un document, suivi webhook, archivage.
    - Export comptable : GnuCash, CSV automatisé.
    - E-mails transactionnels via Resend.
 
 4. **Conformité**
+
    - RGPD : gestion des droits d’accès et consentement.
    - Audit log (table `audit`).
 
@@ -117,7 +134,7 @@ Le projet repose sur une **stack moderne** choisie avec soin pour combiner robus
 Le choix du nom n’est pas anodin : il porte un **sens historique et symbolique**.
 
 - **Cartulaire** : dans la tradition médiévale, un cartulaire est un recueil de chartes, titres et actes fondateurs d’une institution (abbaye, seigneurie, commune). Il incarne la **mémoire juridique** et l’**authenticité des documents**.
-- **Concorde** : du latin *concordia* (harmonie), il évoque l’idée d’**équilibre, d’organisation cohérente et de paix civile**. Il traduit l’ambition du projet : rétablir l’ordre dans la gestion des données clients/contrats.
+- **Concorde** : du latin _concordia_ (harmonie), il évoque l’idée d’**équilibre, d’organisation cohérente et de paix civile**. Il traduit l’ambition du projet : rétablir l’ordre dans la gestion des données clients/contrats.
 
 👉 **« Concorde Cartulaire »** devient ainsi une **Mercuriale des Chartes numériques** : un outil moderne mais enraciné, garant de sérieux, de sécurité et de mémoire.
 
@@ -150,7 +167,7 @@ Ce projet vise à offrir un **back-office intégré** et **sécurisé** aux entr
 
 - Diagramme DB (export DBeaver).
 - Screenshots : Dashboard, Clients.
-- Lien préprod : *(à insérer)*.
+- Lien préprod : _(à insérer)_.
 - `.env.example` fourni.
 
 ---

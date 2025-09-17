@@ -1,0 +1,40 @@
+[33mfa358e1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m TEST2preprodv0
+[33m0c0e324[m[33m ([m[1;31morigin/dev[m[33m, [m[1;32mdev[m[33m)[m TESTpreprodv0
+[33mbc76f49[m preprodv0
+[33m7f79abe[m handle no buffer preprodv0
+[33m2231bed[m preprodv0
+[33m9b3298b[m coockie await preprodv3
+[33m163a55a[m preprodv3
+[33mc447063[m preprodv2
+[33m5f03266[m preprodv1
+[33m0b8c764[m drizzle and bdd push preprod, deploy
+[33m50cba90[m preprod special co v2
+[33m4494087[m preprod special co
+[33md12703f[m preprod user_passkeys
+[33me9f9196[m preprodv2
+[33m2bf648c[m test debogue preprod
+[33m44a38aa[m good  gc local, deploy
+[33mcb7078e[m debogue, param, gc, test envoie
+[33m8b7bd59[m mise en place test local pdf crm paimenet facture gocardless
+[33m4ee0470[m une db server, responsive, clean code
+[33m1cf90b6[m notes et deploiement var
+[33m6c47de3[m bogue fichier ts en moins
+[33ma1a09c8[m co forte id pc tel, en local
+[33mca465ed[m auth passkey fido2 avec cle local, données protegee par user
+[33m063d45d[m csp preprod & next deploiement
+[33m837b562[m correct paiments et db server
+[33ma3b05b1[m correct pages routes preprod local react next and circularprogress
+[33m4a39bd2[m err ignore ts
+[33me6e1c45[m err typescript v2, deploiement
+[33m2c907fd[m err typescript, deploiement
+[33m61bc792[m type test next v3, deploiement
+[33mc2c0014[m type test next v2, deploiement
+[33m191a31b[m type test next, deploiement
+[33m808bdfd[m warnings loads & images, type valideid next, deploiement
+[33mbde31b6[m type valide pour next ts, deploiement vercel
+[33m6de3119[m corrections install eslint & config challenge route, preprod
+[33ma721c78[m corrections config ts path pour deploiement vercel preprod
+[33mf5f4a60[m panneau de depart avec resume des infos
+[33m96379b1[m toutes pages affichages dynamiques et logiques, responsives
+[33m0d5c982[m routes de suppression, front et nav fonctionnels, adaptation api
+[33m860f72c[m big base project dbvisualizer neon components nextts ApiRoutes ui
