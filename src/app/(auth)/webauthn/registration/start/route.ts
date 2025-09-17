@@ -5,7 +5,7 @@ import { generateRegistrationOptions } from "@simplewebauthn/server";
 import { db } from "@/server/db/client";
 import { auth_challenges, user_passkeys, users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { randomBytes } from "node:crypto";
+// import { randomBytes } from "node:crypto";
 
 export const runtime = "nodejs";
 
@@ -56,11 +56,18 @@ export async function POST(req: Request) {
 
     const { rpID } = getWebAuthnConfig();
 
+    console.log("[DEBUG /registration/start]", {
+      rpID,
+      origin: process.env.WEBAUTHN_ORIGIN,
+      webauthn_user_id: u.webauthn_user_id,
+      type_uid: typeof u.webauthn_user_id,
+    });
+
     // 3) options WebAuthn
     const opts = await generateRegistrationOptions({
       rpName: "Concorde Cartulaire",
       rpID,
-      userID: new Uint8Array(randomBytes(16)), // identifiant stable serait mieux à terme
+     userID: new Uint8Array(Buffer.from(u.webauthn_user_id!, "base64url")),
       userName: u.email,
       attestationType: "none",
       // @ts-ignore
