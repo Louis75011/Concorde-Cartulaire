@@ -1,6 +1,7 @@
 // README
 
 // Chrome More tools>WebAuthn enable virtual CO -> localhost:3000/factures -> npx localtunnel --port 3000 -> env.local avec URL générée -> Payer Sepa 
+// https://loca.lt/mytunnelpassword
 
 // Propositions / Precisions supplementaires & solution intégrée pour gérer : Clients (données, contrats, facturation) Collaborateurs (accès, rôles, affectations) Prestataires (typologie, missions, suivi) Processus contrat vendeur ↔ demandeur Paiement et suivi via outils tiers (GoCardless, SlimPay, CRM, GnuCash ; authentification moins forte mais similaire si autre est gratuit, idem pour paiement). Typologie des gens. 
 
@@ -22,7 +23,7 @@
 
 // Support / Relation client : assistance
 
-// 3. Typologie des prestataires Techniques : dev front (React/TS), back (Quarkus), DevOps (Proxmox, Debian, IaC). Fonctionnels : CRM, facturation, intégration marketplace. Support / Relation client : assistance, formation, suivi qualité. Juridique : gestion contrats, cession de droits, conformité RGPD.
+// 3. Typologie des prestataires Techniques : dev front (React/TS), DevOps (Proxmox, Debian, IaC). Fonctionnels : CRM, facturation, intégration marketplace. Support / Relation client : assistance, formation, suivi qualité. Juridique : gestion contrats, cession de droits, conformité RGPD.
 
 // 4. Pré-sélection d’outils Paiement / Abonnements : GoCardless, SlimPay. Comptabilité : GnuCash (open source) ou équivalent SaaS. CRM : HubSpot (cloud), Dolibarr (open source), ou déeloppement interne connecté à la BDD. Infra : Proxmox (VM), PostgreSQL (BDD), Debian (OS). Sécurité : FIDO2 (auth forte), OTP SMS (signature).
 
