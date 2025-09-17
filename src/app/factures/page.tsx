@@ -62,7 +62,7 @@ export default async function FacturesPage() {
             const clientNom = f.client_nom ?? "Client Démo";
             const pdfHref = `/api/factures/${f.id}/pdf`;
             const payHref =
-              `/api/payments/gocardless/redirect/start` +
+              `/api/payments/gc/redirect/start` +
               `?invoice_id=${f.id}` +
               `&client_email=${encodeURIComponent(clientEmail)}` +
               `&client_nom=${encodeURIComponent(clientNom)}`;

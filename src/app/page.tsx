@@ -64,7 +64,7 @@ export default function DashboardPage() {
 
       <Container sx={{ py: 4 }}>
         <Typography variant="h4" gutterBottom>
-          Tableau de bord
+          Tableau de bord (CRM)
         </Typography>
 
         {/* Cas 1 : pas connecté */}
@@ -113,7 +113,7 @@ export default function DashboardPage() {
                   <Typography>Actifs : {data?.contrats}</Typography>
                 </Paper>
               </Grid>
-              
+
               {/* Factures */}
               <Grid item xs={12} md={4}>
                 <Paper sx={{ p: 2 }}>

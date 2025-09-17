@@ -23,9 +23,10 @@
     "jsx": "preserve",
     "incremental": true,
     "types": [
-      "node", "@types/pdfkit"
+      "node"
     ],
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "plugins": [
       {
         "name": "next"

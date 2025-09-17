@@ -25,6 +25,7 @@
     "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.2",
     "drizzle-orm": "^0.44.5",
+    "gocardless-nodejs": "^6.0.0",
     "jose": "^5.9.3",
     "next": "^15.5.3",
     "otplib": "^12.0.1",

@@ -1,33 +1,44 @@
 import { NextResponse } from "next/server";
 import { db } from "@/server/db/client";
-import { factures, clients, contrats } from "@/server/db/schema"; // adaptez si besoin
+import { factures, contrats, clients } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { renderInvoicePDF } from "@/server/pdf/invoice";
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
-  const id = Number(params.id);
+export const runtime = "nodejs";
 
-  const inv = (await db.select().from(factures).where(eq(factures.id, id)).limit(1))[0];
-  if (!inv) return NextResponse.json({ error: "Facture introuvable" }, { status: 404 });
+export async function GET(
+  _req: Request,
+  ctx: { params: Promise<{ id: string }> } // ← params doit être “await”
+) {
+  const { id } = await ctx.params;
+  const num = Number(id);
 
-  // On déduit le client via le contrat si votre schéma fonctionne ainsi
-  let cli: any = null;
-  if ("contrat_id" in inv) {
-    const ct = (await db.select().from(contrats).where(eq(contrats.id, inv.contrat_id)).limit(1))[0];
-    if (ct?.client_id) {
-      cli = (await db.select().from(clients).where(eq(clients.id, ct.client_id)).limit(1))[0];
-    }
+  const row = (
+    await db
+      .select({
+        id: factures.id,
+        date_emission: factures.date_emission,
+        montant_ttc: factures.montant_ttc,
+        client_nom: clients.nom,
+        client_email: clients.email,
+      })
+      .from(factures)
+      .leftJoin(contrats, eq(contrats.id, factures.contrat_id))
+      .leftJoin(clients, eq(clients.id, contrats.client_id))
+      .where(eq(factures.id, num))
+      .limit(1)
+  )[0];
+
+  if (!row) {
+    return NextResponse.json({ error: "Facture introuvable" }, { status: 404 });
   }
 
-  const montant = Number(inv.montant_ttc ?? "0");
-  const date = inv.date_emission ? new Date(inv.date_emission) : new Date();
-
   const pdf = await renderInvoicePDF({
-    id,
-    client: { nom: cli?.nom ?? "Client", email: cli?.email ?? "" },
-    date,
-    montant,
-    lignes: [], // si vous avez des lignes, mappez ici
+    id: row.id,
+    clientNom: row.client_nom ?? "—",
+    clientEmail: row.client_email ?? "—",
+    dateEmission: row.date_emission,
+    montantTTC: Number(row.montant_ttc),
   });
 
 //   @ts-ignore
@@ -35,7 +46,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `inline; filename="facture-${id}.pdf"`,
-      "Cache-Control": "no-store",
+      "Cache-Control": "private, no-store",
     },
   });
 }
