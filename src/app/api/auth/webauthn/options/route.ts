@@ -1,3 +1,4 @@
+// src\app\api\auth\webauthn\options\route.ts
 import { NextResponse } from "next/server";
 import { generateAuthenticationOptions } from "@simplewebauthn/server";
 import { cookies } from "next/headers";

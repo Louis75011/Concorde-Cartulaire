@@ -1,3 +1,4 @@
+// src\app\api\auth\webauthn\auth\options\route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { startAuth } from '@/lib/auth/webauthn-server';
 import { setAuthChallenge } from '@/lib/auth/challenges';

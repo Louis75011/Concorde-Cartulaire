@@ -1,3 +1,4 @@
+// src\server\register-option.js
 const { generateRegistrationOptions } = require('@simplewebauthn/server');
 
 function makeRegistrationOptions(user) {

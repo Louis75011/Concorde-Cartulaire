@@ -33,9 +33,9 @@ export async function POST(req: Request) {
       u = ins[0];
     }
 
-    // 2) handle stable
+    // 2) handle stable (string en base)
     if (!u.webauthn_user_id) {
-      const handle = randomBytes(16).toString("base64url"); // ✅ stocké en base en string
+      const handle = randomBytes(32).toString("base64url"); // ✅ string base64url
       await db.update(users).set({ webauthn_user_id: handle }).where(eq(users.id, u.id));
       u.webauthn_user_id = handle as any;
     }
@@ -43,13 +43,13 @@ export async function POST(req: Request) {
     // 3) exclude credentials
     const existing = await db.select().from(user_passkeys).where(eq(user_passkeys.user_id, u.id));
 
+    // 4) construire les options avec userID en Uint8Array
     const opts = await generateRegistrationOptions({
       rpName: "Concorde Cartulaire",
       rpID,
-      userID: new Uint8Array(Buffer.from(u.webauthn_user_id!, "base64url")),
+      userID: new Uint8Array(Buffer.from(u.webauthn_user_id!, "base64url")), // ✅ conversion
       userName: u.email,
       attestationType: "none",
-      // @ts-ignore
       excludeCredentials: existing.map(c => ({
         id: new Uint8Array(Buffer.from(c.credential_id, "base64url")),
         type: "public-key" as const,
@@ -65,7 +65,6 @@ export async function POST(req: Request) {
     });
 
     const res = NextResponse.json(opts);
-    // poser le cookie sur la réponse
     res.cookies.set("webauthn_reg_uid", String(u.id), {
       httpOnly: true, sameSite: "lax", path: "/", maxAge: 10 * 60, secure: true,
     });
